@@ -1,0 +1,45 @@
+Index: target/generated-sources/annotations/com/example/eclat/mapper/UserMapperImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/target/generated-sources/annotations/com/example/eclat/mapper/UserMapperImpl.java b/target/generated-sources/annotations/com/example/eclat/mapper/UserMapperImpl.java
+new file mode 100644
+--- /dev/null	(date 1736687113700)
++++ b/target/generated-sources/annotations/com/example/eclat/mapper/UserMapperImpl.java	(date 1736687113700)
+@@ -0,0 +1,35 @@
++package com.example.eclat.mapper;
++
++import com.example.eclat.entities.User;
++import com.example.eclat.model.request.UserCreationRequest;
++import javax.annotation.processing.Generated;
++import org.springframework.stereotype.Component;
++
++@Generated(
++    value = "org.mapstruct.ap.MappingProcessor",
++    date = "2025-01-12T20:05:13+0700",
++    comments = "version: 1.5.3.Final, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
++)
++@Component
++public class UserMapperImpl implements UserMapper {
++
++    @Override
++    public User toUser(UserCreationRequest request) {
++        if ( request == null ) {
++            return null;
++        }
++
++        User user = new User();
++
++        user.setUsername( request.getUsername() );
++        user.setPassword( request.getPassword() );
++        user.setEmail( request.getEmail() );
++        user.setPhone( request.getPhone() );
++        user.setAddress( request.getAddress() );
++        user.setCreate_at( request.getCreate_at() );
++        user.setUpdate_at( request.getUpdate_at() );
++        user.setStatus( request.isStatus() );
++
++        return user;
++    }
++}

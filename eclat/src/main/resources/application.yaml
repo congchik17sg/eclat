@@ -1,0 +1,29 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /eclat
+
+
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost:3306/eclat"
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  signerKey: "FpG5Qty7RiJdgZvxtMmwdEx/B1VysAWotu7Bgks2oTXCFvitcfYI1KeTHovA3Fx+"
+#logging:
+#  level:
+#    org.springframework.web: DEBUG
+#    org.springdoc: DEBUG
+#    org.springframework.security: DEBUG

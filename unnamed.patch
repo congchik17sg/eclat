@@ -1,0 +1,33 @@
+Index: eclat/src/main/java/com/example/eclat/exception/GlobalExceptionHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/eclat/src/main/java/com/example/eclat/exception/GlobalExceptionHandler.java b/eclat/src/main/java/com/example/eclat/exception/GlobalExceptionHandler.java
+--- a/eclat/src/main/java/com/example/eclat/exception/GlobalExceptionHandler.java	
++++ b/eclat/src/main/java/com/example/eclat/exception/GlobalExceptionHandler.java	(date 1736608720668)
+@@ -18,15 +18,15 @@
+         return ResponseEntity.badRequest().body(apiResponse);
+     }
+ 
+-    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+-    ResponseEntity<ApiResponse> handlingMethodArgument(MethodArgumentNotValidException exception) {
+-        String enumKey = exception.getFieldError().getDefaultMessage();
+-        ErrorCode errorCode = ErrorCode.valueOf(enumKey);
+-        ApiResponse apiResponse = new ApiResponse();
+-        apiResponse.setCode(errorCode.getCode());
+-        apiResponse.setMessage(errorCode.getMessage());
+-        return ResponseEntity.badRequest().body(apiResponse);
+-    }
++//    @ExceptionHandler(value = MethodArgumentNotValidException.class)
++//    ResponseEntity<ApiResponse> handlingMethodArgument(MethodArgumentNotValidException exception) {
++//        String enumKey = exception.getFieldError().getDefaultMessage();
++//        ErrorCode errorCode = ErrorCode.valueOf(enumKey);
++//        ApiResponse apiResponse = new ApiResponse();
++//        apiResponse.setCode(errorCode.getCode());
++//        apiResponse.setMessage(errorCode.getMessage());
++//        return ResponseEntity.badRequest().body(apiResponse);
++//    }
+ 
+     @ExceptionHandler(value = AppException.class)
+     ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
