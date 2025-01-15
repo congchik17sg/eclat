@@ -1,6 +1,7 @@
 package com.example.eclat.service;
 
 
+import com.example.eclat.entities.User;
 import com.example.eclat.exception.AppException;
 import com.example.eclat.exception.ErrorCode;
 import com.example.eclat.model.request.AuthenticationRequest;
@@ -22,11 +23,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.StringJoiner;
 
 @Slf4j
 @Service
@@ -61,24 +64,24 @@ public class AuthenticationService {
                 user.getPassword());
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-        var token = generateToken(request.getUsername());
+        var token = generateToken(user);
         return AuthenticationResponse.builder()
                 .token(token)
                 .isAuthenticated(true)
                 .build();
     }
 
-    private String generateToken(String username) {
+    private String generateToken(User user) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(username)
+                .subject(user.getUsername())
                 .issuer("congchi.deptrai")// ten nguoi doamain
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
-                .claim("customClaim", "Custom")
+                .claim("scope", buildScope(user))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -92,5 +95,13 @@ public class AuthenticationService {
             log.error("cannot create token", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        if (!CollectionUtils.isEmpty(user.getRole()))
+            user.getRole().forEach(stringJoiner::add);
+
+        return stringJoiner.toString();
     }
 }
