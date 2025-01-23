@@ -46,12 +46,14 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
                                 // All other requests require authentication
 
+
                                 .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 ->
                 oauth2.jwt(jwtConfigurer ->
-                        jwtConfigurer.decoder(jwtDecoder())
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                                jwtConfigurer.decoder(jwtDecoder())
+                                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
         );
         // Disable CSRF protection
         httpSecurity.csrf(AbstractHttpConfigurer::disable);

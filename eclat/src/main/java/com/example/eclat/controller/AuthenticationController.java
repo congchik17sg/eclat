@@ -7,6 +7,7 @@ import com.example.eclat.model.response.AuthenticationResponse;
 import com.example.eclat.model.response.IntrospectResponse;
 import com.example.eclat.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,6 +22,7 @@ import java.text.ParseException;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Tag(name = "Authentication API", description = "API authen and author")
 public class AuthenticationController {
 
     AuthenticationService authenticationService;
@@ -32,6 +34,7 @@ public class AuthenticationController {
                 .result(result)
                 .build();
     }
+
     @PostMapping("/introspect")
     ApiResponse<IntrospectResponse> authenticationResponse(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
         var result = authenticationService.introspect(request);
