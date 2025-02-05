@@ -31,7 +31,6 @@ public class UserController {
     @Autowired
     UserService userService;
 
-
     @PostMapping
     @Operation(summary = "Tạo tài khoản cho Staff ")
     ApiResponse<UserResponse> createStaff(@RequestBody @Valid UserCreationRequest request) {
