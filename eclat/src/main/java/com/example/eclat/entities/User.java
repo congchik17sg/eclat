@@ -31,7 +31,7 @@ public class User {
     Set<String> role;
     String email;
     String phone;
-    String address;
+//    String address;
     LocalDate create_at;
     LocalDate update_at;
     boolean status;
