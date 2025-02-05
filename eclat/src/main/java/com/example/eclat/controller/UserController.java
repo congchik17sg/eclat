@@ -7,6 +7,7 @@ import com.example.eclat.model.request.UserUpdateRequest;
 import com.example.eclat.model.response.ApiResponse;
 import com.example.eclat.model.response.UserResponse;
 import com.example.eclat.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -32,9 +33,10 @@ public class UserController {
 
 
     @PostMapping
-    ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
+    @Operation(summary = "Tạo tài khoản cho Staff ")
+    ApiResponse<UserResponse> createStaff(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserResponse>builder()
-                .result(userService.createUser(request))
+                .result(userService.createStaff(request))
                 .build();
     }
 

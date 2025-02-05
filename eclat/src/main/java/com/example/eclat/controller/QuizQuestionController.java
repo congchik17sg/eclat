@@ -4,6 +4,7 @@ package com.example.eclat.controller;
 import com.example.eclat.entities.SkinType;
 import com.example.eclat.model.request.quiz.QuizQuestionRequest;
 import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
+import com.example.eclat.model.request.quiz.QuizSubmitRequest;
 import com.example.eclat.model.response.ApiResponse;
 import com.example.eclat.model.response.QuizQuestionResponse;
 import com.example.eclat.service.QuizQuestionService;
@@ -67,22 +68,20 @@ public class QuizQuestionController {
 
 
     @PostMapping("/submit")
-    public ResponseEntity<String> submitQuiz(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<String> submitQuiz(@RequestBody QuizSubmitRequest payload) {
         try {
-            // Parse the selected answers from the payload
-            @SuppressWarnings("unchecked")
-            List<Long> selectedAnswers = (List<Long>) payload.get("answers");
+            // Lấy danh sách câu trả lời
+            List<Long> selectedAnswers = payload.getAnswers();
 
-            // Parse and convert userId from String to Long
-            String userIdString = payload.get("userId").toString();
-            Long userId = Long.parseLong(userIdString);
+            // Lấy userId từ payload
+            String userIdString = payload.getUserId();
 
-            // Determine the skin type
+            // Xác định loại da từ câu trả lời
             SkinType skinType = quizService.determineSkinType(selectedAnswers);
 
             if (skinType != null) {
-                // Save the result and return the response
-                quizService.saveQuizResult(String.valueOf(userId), skinType);
+                // Lưu kết quả và trả về phản hồi
+                quizService.saveQuizResult(userIdString, skinType);
                 return ResponseEntity.ok("Your skin type is: " + skinType.getSkinName());
             } else {
                 return ResponseEntity.badRequest().body("Could not determine skin type.");
@@ -95,6 +94,8 @@ public class QuizQuestionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
+
+
 
 
 }

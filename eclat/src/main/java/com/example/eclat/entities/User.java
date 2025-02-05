@@ -25,6 +25,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
+
     String username;
     String password;
     Set<String> role;
@@ -34,6 +35,8 @@ public class User {
     LocalDate create_at;
     LocalDate update_at;
     boolean status;
+
+
 
 
 }
