@@ -1,4 +1,4 @@
-package com.example.eclat.config;
+package com.example.eclat.configuration;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;

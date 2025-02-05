@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers(
+                                        "/eclat/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
                                         "/v3/api-docs/**"
@@ -57,6 +58,8 @@ public class SecurityConfig {
         );
         // Disable CSRF protection
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
+        //httpSecurity.formLogin(AbstractHttpConfigurer::disable);
+        //httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
 
 
         return httpSecurity.build();
