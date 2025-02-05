@@ -41,6 +41,7 @@ public class UserController {
     }
 
     @GetMapping
+    @Operation(summary = "Lấy danh sách tất cả người dùng ")
     ApiResponse<List<UserResponse>> getAllUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("Username: {}", authentication.getName());
