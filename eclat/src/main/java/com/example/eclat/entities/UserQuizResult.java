@@ -22,6 +22,6 @@ public class UserQuizResult {
     User user;
 
     @ManyToOne
-    @JoinColumn(name = "skintype_id", nullable = false)
+    @JoinColumn(name = "skin_type_id", nullable = false)
     SkinType skinType;
 }

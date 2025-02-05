@@ -27,7 +27,8 @@ public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINT = {"/users",
             "/auth/log-in",
-            "/auth/introspect"};
+            "/auth/introspect",
+            "/auth/verify"};
 
     @Value("${jwt.signerKey}")
     private String signerKey;
@@ -46,6 +47,8 @@ public class SecurityConfig {
                                 // Allow POST requests to /users without authentication
                                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
                                 // All other requests require authentication
+                                .requestMatchers(HttpMethod.GET, "/auth/verify").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
 
 
                                 .anyRequest().authenticated());

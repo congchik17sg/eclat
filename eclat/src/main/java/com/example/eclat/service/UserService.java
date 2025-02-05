@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -40,6 +41,8 @@ public class UserService {
 
     final PasswordEncoder passwordEncoder;
 
+    private final EmailService emailService;
+
 
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername()))
@@ -52,8 +55,53 @@ public class UserService {
         roles.add(Role.Customer.name());
         user.setRole(roles);
 
+        // Mặc định chưa xác thực
+        user.setStatus(false);
+        userRepository.save(user);
+
+        // Gửi email xác thực
+        sendVerificationEmail(user);
+
         return userMapper.toUserResponse(user);
     }
+
+    private void sendVerificationEmail(User user) {
+        String verificationUrl = "http://localhost:8080/eclat/auth/verify?email=" + user.getEmail();
+        emailService.sendVerificationEmail(user.getEmail(), verificationUrl);
+    }
+
+    public boolean verifyUser(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
+        User user = optionalUser.get();
+        user.setStatus(true); // Đánh dấu là đã xác thực
+        userRepository.save(user);
+        return true;
+    }
+
+    public UserResponse createStaff(UserCreationRequest request) {
+        if (userRepository.existsByUsername(request.getUsername()))
+            throw new AppException(ErrorCode.USER_EXISTED);
+
+        User user = userMapper.toUser(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        HashSet<String> roles = new HashSet<>();
+        roles.add(Role.Staff.name());
+        user.setRole(roles);
+
+        // Mặc định chưa xác thực
+        user.setStatus(true);
+        userRepository.save(user);
+
+//         Gửi email xác thực
+//        sendVerificationEmail(user);
+
+        return userMapper.toUserResponse(user);
+    }
+
 
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
@@ -71,26 +119,26 @@ public class UserService {
                 .map(userMapper::toUserResponse).toList();
     }
 
-    @PostAuthorize("returnObject.username == authentication.name ")
+    @PreAuthorize("hasRole('Admin')")
     public UserResponse getUserById(String id) {
         log.info("In method getUserById");
         return userMapper.toUserResponse(userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("user not found")));
     }
 
+    @PostAuthorize("returnObject.username == authentication.name ")
     public UserResponse updateUserById(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("user not found"));
 
-
         userMapper.updateUser(user, request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-
 
         return userMapper.toUserResponse(userRepository.save(user));
 
     }
 
+    @PreAuthorize("hasRole('Admin')")
     public void deleteUserById(String userId) {
         userRepository.deleteById(userId);
     }

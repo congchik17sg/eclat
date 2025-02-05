@@ -2,6 +2,7 @@ package com.example.eclat.model.request;
 
 
 import com.example.eclat.exception.ErrorCode;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,7 +17,8 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserCreationRequest {
 
-    @Size(min = 8, message = "USERNAME_INVALID")
+    @Size(min = 4)
+    @Column(unique = true)
     String username;
     @Size(min = 8, message = "password at least 8 characters")
     String password;
@@ -26,7 +28,7 @@ public class UserCreationRequest {
     String address;
     LocalDate create_at;
     LocalDate update_at;
-    boolean status;
+
 
 //
 }

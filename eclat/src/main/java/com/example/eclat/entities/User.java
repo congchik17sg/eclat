@@ -25,15 +25,18 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
+
     String username;
     String password;
     Set<String> role;
     String email;
     String phone;
-    String address;
+//    String address;
     LocalDate create_at;
     LocalDate update_at;
     boolean status;
+
+
 
 
 }
