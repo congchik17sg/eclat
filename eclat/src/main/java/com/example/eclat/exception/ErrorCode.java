@@ -13,7 +13,8 @@ public enum ErrorCode {
     USER_NOT_EXISTED(1003, "User Not Existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1004, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1005, "you do not have permission", HttpStatus.FORBIDDEN),
-    USER_NOT_FOUND(1006, "you do not have permission", HttpStatus.NOT_FOUND),
+    USER_NOT_FOUND(1006, "User not found", HttpStatus.NOT_FOUND),
+    EMAIL_NOT_VERIFIED(1007, "Email is not verified", HttpStatus.FORBIDDEN),
     ;
 
     private int code;
