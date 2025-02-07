@@ -74,6 +74,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
+    @Operation(summary = "Message trả deleted nhưng chỉ set account disable ")
     ApiResponse<String> deleteUser(@PathVariable String userId) {
         userService.deleteUserById(userId);
         return ApiResponse.<String>builder().result("User has been deleted").build();

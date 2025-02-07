@@ -86,7 +86,7 @@ public class AuthenticationService {
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
-                .claim("scope", buildScope(user))
+                .claim("role", buildRole(user))
                 .claim("userId", user.getId())
                 .build();
 
@@ -103,7 +103,7 @@ public class AuthenticationService {
         }
     }
 
-    private String buildScope(User user) {
+    private String buildRole(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if (!CollectionUtils.isEmpty(user.getRole()))
             user.getRole().forEach(stringJoiner::add);

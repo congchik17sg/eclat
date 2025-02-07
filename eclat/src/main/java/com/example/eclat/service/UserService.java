@@ -47,6 +47,8 @@ public class UserService {
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername()))
             throw new AppException(ErrorCode.USER_EXISTED);
+        if(userRepository.existsByEmail(request.getEmail()))
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
 
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -81,6 +83,7 @@ public class UserService {
         return true;
     }
 
+//    @PreAuthorize("hasRole('Admin')")
     public UserResponse createStaff(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername()))
             throw new AppException(ErrorCode.USER_EXISTED);
@@ -112,21 +115,21 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    @PreAuthorize("hasRole('Admin')")
+//    @PreAuthorize("hasRole('Admin')")
     public List<UserResponse> getAllUser() {
         log.info("In method get users");
         return userRepository.findAll().stream()
                 .map(userMapper::toUserResponse).toList();
     }
 
-    @PreAuthorize("hasRole('Admin')")
+//    @PreAuthorize("hasRole('Admin')")
     public UserResponse getUserById(String id) {
         log.info("In method getUserById");
         return userMapper.toUserResponse(userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("user not found")));
     }
 
-    @PostAuthorize("returnObject.username == authentication.name ")
+//    @PostAuthorize("returnObject.username == authentication.name ")
     public UserResponse updateUserById(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("user not found"));
@@ -138,9 +141,12 @@ public class UserService {
 
     }
 
-    @PreAuthorize("hasRole('Admin')")
+//    @PreAuthorize("hasRole('Admin')")
     public void deleteUserById(String userId) {
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.setStatus(false);
+        userRepository.save(user);
     }
 
 }

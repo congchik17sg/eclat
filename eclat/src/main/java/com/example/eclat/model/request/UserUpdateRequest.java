@@ -18,9 +18,9 @@ public class UserUpdateRequest {
 
     String password;
     //Role role;
-    String email;
+//    String email;
     String phone;
-    String address;
+//    String address;
 //    LocalDate create_at;
     LocalDate update_at;
     //boolean status;

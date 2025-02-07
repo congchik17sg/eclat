@@ -25,7 +25,7 @@ public class UserCreationRequest {
     //Role role;
     String email;
     String phone;
-    String address;
+//    String address;
     LocalDate create_at;
     LocalDate update_at;
 
