@@ -3,7 +3,7 @@ package com.example.eclat.controller;
 
 import com.example.eclat.model.request.quiz.SkinTypeRequest;
 import com.example.eclat.model.response.ApiResponse;
-import com.example.eclat.model.response.SkinTypeResponse;
+import com.example.eclat.model.response.quiz.SkinTypeResponse;
 import com.example.eclat.service.SkinTypeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;

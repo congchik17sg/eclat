@@ -1,4 +1,4 @@
-package com.example.eclat.model.response;
+package com.example.eclat.model.response.quiz;
 
 
 import lombok.*;

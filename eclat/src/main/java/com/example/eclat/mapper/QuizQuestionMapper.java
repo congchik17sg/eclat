@@ -4,7 +4,7 @@ package com.example.eclat.mapper;
 import com.example.eclat.entities.QuizQuestion;
 import com.example.eclat.model.request.quiz.QuizQuestionRequest;
 import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
-import com.example.eclat.model.response.QuizQuestionResponse;
+import com.example.eclat.model.response.quiz.QuizQuestionResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

@@ -1,9 +1,6 @@
-package com.example.eclat.model.response;
+package com.example.eclat.model.response.quiz;
 
 
-import com.example.eclat.entities.QuizQuestion;
-import com.example.eclat.entities.SkinType;
-import jakarta.persistence.Entity;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

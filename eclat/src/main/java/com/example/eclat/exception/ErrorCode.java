@@ -16,6 +16,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(1006, "User not found", HttpStatus.NOT_FOUND),
     EMAIL_NOT_VERIFIED(1007, "Email is not verified", HttpStatus.FORBIDDEN),
     EMAIL_EXISTED(1008, "Email existed", HttpStatus.BAD_REQUEST),
+    INCORRECT_PASSWORD(1009, "Wrong password", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;

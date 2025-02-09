@@ -5,26 +5,23 @@ import com.example.eclat.enums.Role;
 import com.example.eclat.exception.AppException;
 import com.example.eclat.exception.ErrorCode;
 import com.example.eclat.mapper.UserMapper;
-import com.example.eclat.model.request.UserCreationRequest;
-import com.example.eclat.model.request.UserUpdateRequest;
-import com.example.eclat.model.response.UserResponse;
+import com.example.eclat.model.request.user.UserCreationRequest;
+import com.example.eclat.model.request.user.UserUpdateEmailRequest;
+import com.example.eclat.model.request.user.UserUpdatePasswordRequest;
+import com.example.eclat.model.response.user.UserResponse;
 import com.example.eclat.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 
 @Service
@@ -130,18 +127,46 @@ public class UserService {
     }
 
 //    @PostAuthorize("returnObject.username == authentication.name ")
-    public UserResponse updateUserById(String userId, UserUpdateRequest request) {
+    public UserResponse updateUserEmailById(String userId, UserUpdateEmailRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("user not found"));
 
         userMapper.updateUser(user, request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setStatus(false);
+        userRepository.save(user);
+        sendVerificationEmail(user);
+//        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         return userMapper.toUserResponse(userRepository.save(user));
 
     }
 
-//    @PreAuthorize("hasRole('Admin')")
+    public UserResponse updateUserPasswordById(String userId, UserUpdatePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // Kiểm tra mật khẩu cũ có đúng không
+        if (!passwordEncoder.matches(request.getOld_password(), user.getPassword())) {
+            throw new AppException(ErrorCode.INCORRECT_PASSWORD);
+        }
+
+        // Mã hóa mật khẩu mới
+        user.setPassword(passwordEncoder.encode(request.getNew_password()));
+
+        // Cập nhật trạng thái xác thực lại nếu cần
+        user.setStatus(true);
+        userRepository.save(user);
+
+        // Gửi email thông báo thay đổi mật khẩu (tuỳ chọn)
+        emailService.sendPasswordChangeNotification(user.getEmail());
+
+        return userMapper.toUserResponse(user);
+    }
+
+
+
+
+    //    @PreAuthorize("hasRole('Admin')")
     public void deleteUserById(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));

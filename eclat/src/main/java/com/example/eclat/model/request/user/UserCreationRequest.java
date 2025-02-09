@@ -1,7 +1,6 @@
-package com.example.eclat.model.request;
+package com.example.eclat.model.request.user;
 
 
-import com.example.eclat.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Size;
 import lombok.*;

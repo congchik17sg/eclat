@@ -3,7 +3,7 @@ package com.example.eclat.controller;
 
 import com.example.eclat.model.request.quiz.QuizAnswerRequest;
 import com.example.eclat.model.response.ApiResponse;
-import com.example.eclat.model.response.QuizAnswerResponse;
+import com.example.eclat.model.response.quiz.QuizAnswerResponse;
 import com.example.eclat.service.QuizAnswerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;

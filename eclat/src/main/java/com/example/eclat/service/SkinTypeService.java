@@ -3,7 +3,7 @@ package com.example.eclat.service;
 import com.example.eclat.entities.SkinType;
 import com.example.eclat.mapper.SkinTypeMapper;
 import com.example.eclat.model.request.quiz.SkinTypeRequest;
-import com.example.eclat.model.response.SkinTypeResponse;
+import com.example.eclat.model.response.quiz.SkinTypeResponse;
 import com.example.eclat.repository.SkinTypeRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

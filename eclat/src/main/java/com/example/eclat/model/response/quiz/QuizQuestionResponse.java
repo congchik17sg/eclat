@@ -1,7 +1,6 @@
-package com.example.eclat.model.response;
+package com.example.eclat.model.response.quiz;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Column;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

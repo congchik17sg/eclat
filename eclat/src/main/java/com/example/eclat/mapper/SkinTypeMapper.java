@@ -3,7 +3,7 @@ package com.example.eclat.mapper;
 
 import com.example.eclat.entities.SkinType;
 import com.example.eclat.model.request.quiz.SkinTypeRequest;
-import com.example.eclat.model.response.SkinTypeResponse;
+import com.example.eclat.model.response.quiz.SkinTypeResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

@@ -2,11 +2,11 @@ package com.example.eclat.controller;
 
 import com.example.eclat.model.request.AuthenticationRequest;
 import com.example.eclat.model.request.IntrospectRequest;
-import com.example.eclat.model.request.UserCreationRequest;
+import com.example.eclat.model.request.user.UserCreationRequest;
 import com.example.eclat.model.response.ApiResponse;
 import com.example.eclat.model.response.AuthenticationResponse;
 import com.example.eclat.model.response.IntrospectResponse;
-import com.example.eclat.model.response.UserResponse;
+import com.example.eclat.model.response.user.UserResponse;
 import com.example.eclat.service.AuthenticationService;
 import com.example.eclat.service.UserService;
 import com.nimbusds.jose.JOSEException;
@@ -16,8 +16,8 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.text.ParseException;
 
@@ -58,12 +58,14 @@ public class AuthenticationController {
 
 
     @GetMapping("/verify")
-    @Operation(summary = "Chỉ để xác thực gmail , fe ko cần sử dụng ")
-    public ResponseEntity<String> verifyUser(@RequestParam String email) {
+    @Operation(summary = "Xác thực tài khoản email")
+    public ModelAndView verifyUser(@RequestParam String email) {
         boolean verified = userService.verifyUser(email);
-        if (verified) {
-            return ResponseEntity.ok("Xác thực tài khoản thành công!");
-        }
-        return ResponseEntity.badRequest().body("Xác thực thất bại!");
+
+        ModelAndView modelAndView = new ModelAndView("verification-result");
+        modelAndView.addObject("email", email);
+        modelAndView.addObject("status", verified ? "success" : "error");
+
+        return modelAndView;
     }
 }

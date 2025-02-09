@@ -7,7 +7,7 @@ import com.example.eclat.exception.ErrorCode;
 import com.example.eclat.mapper.QuizQuestionMapper;
 import com.example.eclat.model.request.quiz.QuizQuestionRequest;
 import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
-import com.example.eclat.model.response.QuizQuestionResponse;
+import com.example.eclat.model.response.quiz.QuizQuestionResponse;
 import com.example.eclat.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

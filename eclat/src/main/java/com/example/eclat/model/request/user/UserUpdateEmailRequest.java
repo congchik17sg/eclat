@@ -1,4 +1,4 @@
-package com.example.eclat.model.request;
+package com.example.eclat.model.request.user;
 
 
 import lombok.*;
@@ -13,19 +13,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserUpdateRequest {
+public class UserUpdateEmailRequest {
 
 
-    String password;
-    //Role role;
-//    String email;
+
+    String email;
     String phone;
-//    String address;
-//    LocalDate create_at;
     LocalDate update_at;
-    //boolean status;
-    List<String> roles;
-
-
 
 }
