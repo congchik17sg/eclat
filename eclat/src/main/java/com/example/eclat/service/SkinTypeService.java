@@ -1,6 +1,8 @@
 package com.example.eclat.service;
 
 import com.example.eclat.entities.SkinType;
+import com.example.eclat.exception.AppException;
+import com.example.eclat.exception.ErrorCode;
 import com.example.eclat.mapper.SkinTypeMapper;
 import com.example.eclat.model.request.quiz.SkinTypeRequest;
 import com.example.eclat.model.response.quiz.SkinTypeResponse;
@@ -39,6 +41,14 @@ public class SkinTypeService {
     public List<SkinTypeResponse> getSkinType() {
         return skinTypeRepository.findAll().stream()
                 .map(skinTypeMapper::toSkinTypeResponse).toList();
+    }
+
+    public SkinTypeResponse updateSkinType(Long skintypeId, SkinTypeRequest request) {
+        SkinType skinType = skinTypeRepository.findById(skintypeId).
+                orElseThrow(() -> new RuntimeException("Không tìm thấy skin"));
+        skinTypeMapper.updateSkinType(skinType, request);
+        skinTypeRepository.save(skinType);
+        return skinTypeMapper.toSkinTypeResponse(skinType);
     }
 
 }

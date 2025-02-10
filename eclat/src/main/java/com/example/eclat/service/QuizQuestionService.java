@@ -53,7 +53,7 @@ public class QuizQuestionService {
         return quizQuestionMapper.toQuizQuestionResponse(quizQuestion);
     }
 
-    @PreAuthorize("hasRole('Admin')")
+//    @PreAuthorize("hasRole('Admin')")
     public List<QuizQuestionResponse> getAllQuiz() {
         return quizQuestionRepository.findAll().stream()
                 .map(quizQuestionMapper::toQuizQuestionResponse).toList();

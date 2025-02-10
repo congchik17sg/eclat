@@ -35,12 +35,18 @@ public class SkinTypeController {
     }
 
     @GetMapping
-    ApiResponse<List<SkinTypeResponse>> getSkinType(){
+    ApiResponse<List<SkinTypeResponse>> getSkinType() {
         return ApiResponse.<List<SkinTypeResponse>>builder()
                 .result(skinTypeService.getSkinType())
                 .build();
     }
 
+    @PutMapping("{skintypeId}")
+    ApiResponse<SkinTypeResponse> updateSkinType(@PathVariable Long skintypeId, @RequestBody SkinTypeRequest request) {
+        return ApiResponse.<SkinTypeResponse>builder()
+                .result(skinTypeService.updateSkinType(skintypeId, request))
+                .build();
+    }
 
 
 }
