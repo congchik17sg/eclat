@@ -3,6 +3,8 @@ package com.example.eclat.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -22,9 +24,10 @@ public class Brand {
     Long brandId;
     String brandName;
     String imgUrl;
+    @CreationTimestamp
     LocalDateTime createAt;
-
-    private LocalDateTime updateAt;
+    @UpdateTimestamp
+    LocalDateTime updateAt;
 
     @Override
     public String toString() {

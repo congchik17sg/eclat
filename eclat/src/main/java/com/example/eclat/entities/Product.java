@@ -3,8 +3,9 @@ package com.example.eclat.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -19,7 +20,6 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) Long productId;
     String productName;
-    int quantity;
     String description;
     String usageInstruct;
     String originCountry;
@@ -35,8 +35,11 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "skintype_id")
     SkinType skinType;
-    BigDecimal price;
+    String attribute;
+
+    @CreationTimestamp
     LocalDateTime createAt;
+    @UpdateTimestamp
     LocalDateTime updateAt;
     Boolean status;
 }

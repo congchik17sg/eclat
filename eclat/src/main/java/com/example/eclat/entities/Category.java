@@ -3,6 +3,8 @@ package com.example.eclat.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +23,9 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.AUTO) Long categoryId;
     String categoryName;
     String description;
+    @CreationTimestamp
     LocalDateTime createAt;
+    @UpdateTimestamp
     LocalDateTime updateAt;
 
     @Override

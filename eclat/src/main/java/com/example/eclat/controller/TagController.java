@@ -1,8 +1,12 @@
 package com.example.eclat.controller;
 
+import com.example.eclat.entities.Category;
 import com.example.eclat.entities.Tag;
+import com.example.eclat.model.request.TagRequest;
 import com.example.eclat.model.response.ResponseObject;
+import com.example.eclat.repository.CategoryRepository;
 import com.example.eclat.repository.TagRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +23,11 @@ import java.util.Optional;
         // Dependency Injection
         @Autowired
         private TagRepository repository;
+        @Autowired
+        private CategoryRepository categoryRepository;
 
         @GetMapping("")
         public List<Tag> getAllTags() {
-            // This request is: http://localhost:8080/api/Tags
             return repository.findAll();
         }
 
@@ -42,14 +47,29 @@ import java.util.Optional;
         }
 
         @PostMapping("/insert")
-        public ResponseEntity<ResponseObject> insertTag(@RequestBody Tag newTag) {
-            // Two tags must not have the same name in the same category
-            List<Tag> foundTags = repository.findByTagNameAndCategory(newTag.getTagName().trim(), newTag.getCategory());
-            if (foundTags.size() > 0) {
-                return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
-                        new ResponseObject("failed", "Tag name already exists in the category", "")
+        public ResponseEntity<ResponseObject> insertTag(@RequestBody @Valid TagRequest requestDTO) {
+            // Tìm category theo categoryId
+            Optional<Category> category = categoryRepository.findById(requestDTO.getCategoryId());
+            if (category.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                        new ResponseObject("failed", "Category không tồn tại", "")
                 );
             }
+
+            // Kiểm tra tag có trùng tên trong category hay không
+            List<Tag> foundTags = repository.findByTagNameAndCategory(requestDTO.getTagName().trim(), category.get());
+            if (!foundTags.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
+                        new ResponseObject("failed", "Tag name đã tồn tại trong category", "")
+                );
+            }
+
+            // Tạo Tag mới từ DTO
+            Tag newTag = new Tag();
+            newTag.setTagName(requestDTO.getTagName());
+            newTag.setDescription(requestDTO.getDescription());
+            newTag.setCategory(category.get());
+
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject("ok", "Tag added successfully", repository.save(newTag))
             );
