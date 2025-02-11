@@ -1,7 +1,6 @@
-package com.example.eclat.model.request;
+package com.example.eclat.model.request.user;
 
 
-import com.example.eclat.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -25,7 +24,7 @@ public class UserCreationRequest {
     //Role role;
     String email;
     String phone;
-    String address;
+//    String address;
     LocalDate create_at;
     LocalDate update_at;
 

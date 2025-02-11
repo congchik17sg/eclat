@@ -1,9 +1,9 @@
 package com.example.eclat.mapper;
 
 import com.example.eclat.entities.User;
-import com.example.eclat.model.request.UserCreationRequest;
-import com.example.eclat.model.request.UserUpdateRequest;
-import com.example.eclat.model.response.UserResponse;
+import com.example.eclat.model.request.user.UserCreationRequest;
+import com.example.eclat.model.request.user.UserUpdateEmailRequest;
+import com.example.eclat.model.response.user.UserResponse;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.annotation.processing.Generated;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-02-05T21:52:50+0700",
+    date = "2025-02-08T14:18:28+0700",
     comments = "version: 1.5.3.Final, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
@@ -60,12 +60,11 @@ public class UserMapperImpl implements UserMapper {
     }
 
     @Override
-    public void updateUser(User user, UserUpdateRequest request) {
+    public void updateUser(User user, UserUpdateEmailRequest request) {
         if ( request == null ) {
             return;
         }
 
-        user.setPassword( request.getPassword() );
         user.setEmail( request.getEmail() );
         user.setPhone( request.getPhone() );
         user.setUpdate_at( request.getUpdate_at() );

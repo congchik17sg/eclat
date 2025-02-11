@@ -1,7 +1,7 @@
 package com.example.eclat.mapper;
 
 import com.example.eclat.entities.QuizAnswer;
-import com.example.eclat.model.response.QuizAnswerResponse;
+import com.example.eclat.model.response.quiz.QuizAnswerResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

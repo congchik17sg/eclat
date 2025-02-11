@@ -59,6 +59,10 @@ public class AuthenticationService {
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+        if (!user.isStatus()) {
+            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean authenticated = passwordEncoder.matches(request.getPassword(),
                 user.getPassword());
@@ -75,14 +79,15 @@ public class AuthenticationService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
+//                .subject(user.getUsername())
 //                .issuer("congchi.deptrai")// ten nguoi doamain
                 .issuer("eclat.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
-                .claim("scope", buildScope(user))
+                .claim("username", user.getUsername())
+                .claim("role", buildRole(user))
                 .claim("userId", user.getId())
                 .build();
 
@@ -99,7 +104,7 @@ public class AuthenticationService {
         }
     }
 
-    private String buildScope(User user) {
+    private String buildRole(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if (!CollectionUtils.isEmpty(user.getRole()))
             user.getRole().forEach(stringJoiner::add);

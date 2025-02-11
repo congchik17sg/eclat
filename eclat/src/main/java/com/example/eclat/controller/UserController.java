@@ -1,11 +1,11 @@
 package com.example.eclat.controller;
 
 
-import com.example.eclat.entities.User;
-import com.example.eclat.model.request.UserCreationRequest;
-import com.example.eclat.model.request.UserUpdateRequest;
+import com.example.eclat.model.request.user.UserCreationRequest;
+import com.example.eclat.model.request.user.UserUpdateEmailRequest;
+import com.example.eclat.model.request.user.UserUpdatePasswordRequest;
 import com.example.eclat.model.response.ApiResponse;
-import com.example.eclat.model.response.UserResponse;
+import com.example.eclat.model.response.user.UserResponse;
 import com.example.eclat.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,14 +66,26 @@ public class UserController {
                 .build();
     }
 
-    @PutMapping("/{userId}")
-    ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
+    @PutMapping("/updateEmail/{userId}")
+    @Operation(summary = "Cập nhật email người dùng và số điện thoại ( có xác thực lại mail mới ) ")
+    ApiResponse<UserResponse> updateEmailUser(@PathVariable String userId, @RequestBody UserUpdateEmailRequest request) {
         return ApiResponse.<UserResponse>builder()
-                .result(userService.updateUserById(userId, request))
+                .result(userService.updateUserEmailById(userId, request))
                 .build();
     }
 
+    @PutMapping("/updatePassword/{userId}")
+    @Operation(summary = "Cập nhật mật khẩu mới ( có gửi mail mới ) ")
+    ApiResponse<UserResponse> updatePasswordUser(@PathVariable String userId, @RequestBody UserUpdatePasswordRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.updateUserPasswordById(userId , request))
+                .build();
+    }
+
+
+
     @DeleteMapping("/{userId}")
+    @Operation(summary = "Message trả deleted nhưng chỉ set account disable ")
     ApiResponse<String> deleteUser(@PathVariable String userId) {
         userService.deleteUserById(userId);
         return ApiResponse.<String>builder().result("User has been deleted").build();

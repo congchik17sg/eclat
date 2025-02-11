@@ -6,7 +6,7 @@ import com.example.eclat.entities.QuizQuestion;
 import com.example.eclat.entities.SkinType;
 import com.example.eclat.mapper.QuizAnswerMapper;
 import com.example.eclat.model.request.quiz.QuizAnswerRequest;
-import com.example.eclat.model.response.QuizAnswerResponse;
+import com.example.eclat.model.response.quiz.QuizAnswerResponse;
 import com.example.eclat.repository.QuizAnswerRepository;
 import com.example.eclat.repository.QuizQuestionRepository;
 import com.example.eclat.repository.SkinTypeRepository;

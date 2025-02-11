@@ -27,68 +27,105 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENDPOINT = {"/users",
-            "/auth/log-in",
-            "/auth/introspect",
-            "/auth/verify"};
-
+//    private final String[] PUBLIC_ENDPOINT = {"/users",
+//            "/auth/log-in",
+//            "/auth/introspect",
+//            "/auth/verify"};
+//
     @Value("${jwt.signerKey}")
     private String signerKey;
+
+
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:5173")); // Adjust as needed
+                    config.setAllowedOrigins(List.of("http://localhost:5173")); // Điều chỉnh nếu cần
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);
                     return config;
                 }))
-                .authorizeHttpRequests(request ->
-                        request
-                                .requestMatchers(
-                                        "/eclat/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
-                                        "/v3/api-docs/**"
-                                ).permitAll()
-                                // Allow POST requests to /users without authentication
-                                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
-                                // All other requests require authentication
-                                .requestMatchers(HttpMethod.GET, "/auth/verify").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-
-
-                                .anyRequest().authenticated());
-
-        httpSecurity.oauth2ResourceServer(oauth2 ->
-                oauth2.jwt(jwtConfigurer ->
-                                jwtConfigurer.decoder(jwtDecoder())
-                                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
-        );
-        // Disable CSRF protection
-        httpSecurity.csrf(AbstractHttpConfigurer::disable);
-        //httpSecurity.formLogin(AbstractHttpConfigurer::disable);
-        //httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
-
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        // Giữ nguyên các API liên quan đến đăng nhập & token
+                        .requestMatchers(HttpMethod.POST, "/auth/log-in", "/auth/introspect", "/auth/verify").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.GET ,"/auth/verify").permitAll()
+                        // ⚡ Cho phép mọi request khác, miễn là có token hợp lệ
+                        .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
+                        jwtConfigurer.decoder(jwtDecoder())
+                ))
+                .csrf(AbstractHttpConfigurer::disable); // Nếu không cần CSRF
 
         return httpSecurity.build();
     }
 
-    @Bean
-    JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
 
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
 
-        return jwtAuthenticationConverter;
-    }
 
+
+
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+//        httpSecurity
+//                .cors(cors -> cors.configurationSource(request -> {
+//                    CorsConfiguration config = new CorsConfiguration();
+//                    config.setAllowedOrigins(List.of("http://localhost:5173")); // Adjust as needed
+//                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//                    config.setAllowedHeaders(List.of("*"));
+//                    config.setAllowCredentials(true);
+//                    return config;
+//                }))
+//                .authorizeHttpRequests(request ->
+//                        request
+//                                .requestMatchers(
+//                                        "/swagger-ui/**",
+//                                        "/swagger-ui.html",
+//                                        "/v3/api-docs/**"
+//                                ).permitAll()
+//                                // Allow POST requests to /users without authentication
+//                                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
+//                                // All other requests require authentication
+//                                .requestMatchers(HttpMethod.GET, "/auth/verify").permitAll()
+//                                .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+//
+//
+//                                .anyRequest().authenticated());
+//
+//        httpSecurity.oauth2ResourceServer(oauth2 ->
+//                oauth2.jwt(jwtConfigurer ->
+//                                jwtConfigurer.decoder(jwtDecoder())
+//                                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+//                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+//        );
+//        // Disable CSRF protection
+//        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+//
+//
+//        return httpSecurity.build();
+//    }
+
+//    @Bean
+//    JwtAuthenticationConverter jwtAuthenticationConverter() {
+//        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+//        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+//
+//        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+//        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+//
+//        return jwtAuthenticationConverter;
+//    }
+//
     @Bean
     JwtDecoder jwtDecoder() {
         SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");

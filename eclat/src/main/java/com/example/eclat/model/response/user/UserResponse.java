@@ -1,4 +1,4 @@
-package com.example.eclat.model.response;
+package com.example.eclat.model.response.user;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
@@ -21,7 +21,7 @@ public class UserResponse {
     String password;
     String email;
     String phone;
-    String address;
+//    String address;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     LocalDate create_at;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

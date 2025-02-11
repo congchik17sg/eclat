@@ -6,7 +6,7 @@ import com.example.eclat.model.request.quiz.QuizQuestionRequest;
 import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
 import com.example.eclat.model.request.quiz.QuizSubmitRequest;
 import com.example.eclat.model.response.ApiResponse;
-import com.example.eclat.model.response.QuizQuestionResponse;
+import com.example.eclat.model.response.quiz.QuizQuestionResponse;
 import com.example.eclat.service.QuizQuestionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
@@ -20,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/quiz")
