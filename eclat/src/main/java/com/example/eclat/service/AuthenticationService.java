@@ -79,13 +79,14 @@ public class AuthenticationService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
+//                .subject(user.getUsername())
 //                .issuer("congchi.deptrai")// ten nguoi doamain
                 .issuer("eclat.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
+                .claim("username", user.getUsername())
                 .claim("role", buildRole(user))
                 .claim("userId", user.getId())
                 .build();

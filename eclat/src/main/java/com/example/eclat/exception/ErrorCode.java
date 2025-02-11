@@ -17,6 +17,8 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED(1007, "Email is not verified", HttpStatus.FORBIDDEN),
     EMAIL_EXISTED(1008, "Email existed", HttpStatus.BAD_REQUEST),
     INCORRECT_PASSWORD(1009, "Wrong password", HttpStatus.BAD_REQUEST),
+    INVALID_OTP(1010, "Wrong OTP", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_EXISTED(1008, "Email not existed", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;
