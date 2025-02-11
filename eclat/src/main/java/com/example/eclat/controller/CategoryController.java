@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,6 +60,8 @@ public class CategoryController {
         Category newCategory = new Category();
         newCategory.setCategoryName(requestDTO.getCategoryName());
         newCategory.setDescription(requestDTO.getDescription());
+        newCategory.setCreateAt(LocalDateTime.now());
+        newCategory.setUpdateAt(LocalDateTime.now());
         // Các field createAt, updateAt tự động được set
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ResponseObject("ok", "Thêm category thành công", repository.save(newCategory))

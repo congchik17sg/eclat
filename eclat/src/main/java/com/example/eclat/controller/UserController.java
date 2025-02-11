@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,7 +77,7 @@ public class UserController {
     }
 
     @PutMapping("/updatePassword/{userId}")
-    @Operation(summary = "Cập nhật mật khẩu mới ( có gửi mail mới ) ")
+    @Operation(summary = "Cập nhật mật khẩu mới ( có gửi mail thông báo ) ")
     ApiResponse<UserResponse> updatePasswordUser(@PathVariable String userId, @RequestBody UserUpdatePasswordRequest request) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUserPasswordById(userId , request))
@@ -87,6 +89,31 @@ public class UserController {
     ApiResponse<String> deleteUser(@PathVariable String userId) {
         userService.deleteUserById(userId);
         return ApiResponse.<String>builder().result("User has been deleted").build();
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "bước 1 gửi email quên password ")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        userService.sendResetPasswordOtp(email);
+        return ResponseEntity.ok("OTP đã được gửi đến email của bạn.");
+    }
+
+    @PostMapping("/verify-otp")
+    @Operation(summary = "bước 2 xác thực otp ")
+    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        boolean isValid = userService.verifyOtp(email, otp);
+        if (!isValid) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP không hợp lệ.");
+        }
+        return ResponseEntity.ok("OTP hợp lệ.");
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "bước 3 nhập pass mới ")
+    public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String otp,
+                                                @RequestParam String newPassword) {
+        userService.resetPassword(email, otp, newPassword);
+        return ResponseEntity.ok("Mật khẩu đã được đặt lại thành công.");
     }
 
 

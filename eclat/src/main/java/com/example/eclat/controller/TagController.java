@@ -69,6 +69,8 @@ import java.util.Optional;
             newTag.setTagName(requestDTO.getTagName());
             newTag.setDescription(requestDTO.getDescription());
             newTag.setCategory(category.get());
+            newTag.setUpdateAt(LocalDateTime.now());
+            newTag.setCreateAt(LocalDateTime.now());
 
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject("ok", "Tag added successfully", repository.save(newTag))

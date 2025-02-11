@@ -1,10 +1,9 @@
 package com.example.eclat.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -23,9 +22,10 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.AUTO) Long categoryId;
     String categoryName;
     String description;
-    @CreationTimestamp
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     LocalDateTime createAt;
-    @UpdateTimestamp
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     LocalDateTime updateAt;
 
     @Override
