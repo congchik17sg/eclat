@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,6 +57,8 @@ import java.util.Optional;
             Brand newBrand = new Brand();
             newBrand.setBrandName(requestDTO.getBrandName());
             newBrand.setImgUrl(requestDTO.getImgUrl());
+            newBrand.setCreateAt(LocalDateTime.now());
+            newBrand.setUpdateAt(LocalDateTime.now());
 
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject("ok", "Thêm thương hiệu thành công", repository.save(newBrand))

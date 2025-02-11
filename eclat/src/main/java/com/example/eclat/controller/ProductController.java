@@ -124,4 +124,18 @@ public class ProductController {
                 new ResponseObject("ok", "Product deleted successfully", "")
         );
     }
+    @GetMapping("/search")
+    public ResponseEntity<ResponseObject> searchProducts(@RequestParam String name) {
+        List<Product> products = productRepository.findByProductNameContainingIgnoreCase(name);
+
+        if (products.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResponseObject("failed", "No products found with name: " + name, "")
+            );
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ResponseObject("ok", "Products found", products)
+        );
+    }
 }
