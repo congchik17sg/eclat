@@ -77,6 +77,8 @@ public class ProductController {
         newProduct.setBrand(brand.get());
         newProduct.setSkinType(skinType.get());
         newProduct.setAttribute(requestDTO.getAttribute());
+        newProduct.setCreateAt(LocalDateTime.now());
+        newProduct.setUpdateAt(LocalDateTime.now());
         newProduct.setStatus(true);
 
         return ResponseEntity.status(HttpStatus.OK).body(
