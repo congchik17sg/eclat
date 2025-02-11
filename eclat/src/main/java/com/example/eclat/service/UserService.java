@@ -19,9 +19,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Service
@@ -39,6 +41,10 @@ public class UserService {
     final PasswordEncoder passwordEncoder;
 
     private final EmailService emailService;
+
+    // Lưu OTP tạm thời (chỉ nên dùng cache, Redis hoặc database thay thế)
+    private static final ConcurrentHashMap<String, String> otpStorage = new ConcurrentHashMap<>();
+
 
 
     public UserResponse createUser(UserCreationRequest request) {
@@ -172,6 +178,49 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         user.setStatus(false);
         userRepository.save(user);
+    }
+
+    // Tạo mã OTP 6 ký tự
+    private String generateOtp() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder otp = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            otp.append(random.nextInt(10));
+        }
+        return otp.toString();
+    }
+
+    // Gửi OTP qua email
+    public void sendResetPasswordOtp(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXISTED));
+
+        String otp = generateOtp();
+        otpStorage.put(email, otp);
+
+        String subject = "Mã OTP đặt lại mật khẩu";
+        String content = "Mã OTP của bạn là: <b>" + otp + "</b>. Vui lòng không chia sẻ với ai.";
+        emailService.sendEmail(email, subject, content);
+    }
+
+    // Xác minh OTP
+    public boolean verifyOtp(String email, String otp) {
+        return otp.equals(otpStorage.get(email));
+    }
+
+    // Đặt lại mật khẩu mới
+    public void resetPassword(String email, String otp, String newPassword) {
+        if (!verifyOtp(email, otp)) {
+            throw new AppException(ErrorCode.INVALID_OTP);
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        otpStorage.remove(email); // Xóa OTP sau khi sử dụng
     }
 
 }

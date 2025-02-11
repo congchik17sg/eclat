@@ -77,6 +77,8 @@ public class ProductController {
         newProduct.setBrand(brand.get());
         newProduct.setSkinType(skinType.get());
         newProduct.setAttribute(requestDTO.getAttribute());
+        newProduct.setCreateAt(LocalDateTime.now());
+        newProduct.setUpdateAt(LocalDateTime.now());
         newProduct.setStatus(true);
 
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -120,6 +122,20 @@ public class ProductController {
         productRepository.deleteById(id);
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ResponseObject("ok", "Product deleted successfully", "")
+        );
+    }
+    @GetMapping("/search")
+    public ResponseEntity<ResponseObject> searchProducts(@RequestParam String name) {
+        List<Product> products = productRepository.findByProductNameContainingIgnoreCase(name);
+
+        if (products.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResponseObject("failed", "No products found with name: " + name, "")
+            );
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ResponseObject("ok", "Products found", products)
         );
     }
 }
