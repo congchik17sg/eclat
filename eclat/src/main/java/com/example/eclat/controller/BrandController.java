@@ -67,19 +67,19 @@ import java.util.Optional;
 
         // Cập nhật thương hiệu
         @PutMapping("/{id}")
-        public ResponseEntity<ResponseObject> updateBrand(@RequestBody Brand newBrand, @PathVariable Long id) {
-            Brand updatedBrand = repository.findById(id)
+        public ResponseEntity<ResponseObject> updateBrand(@PathVariable Long id, @RequestBody @Valid BrandRequest requestDTO) {
+            return repository.findById(id)
                     .map(brand -> {
-                        brand.setBrandName(newBrand.getBrandName());
-                        brand.setImgUrl(newBrand.getImgUrl());
-                        return repository.save(brand);
-                    }).orElseGet(() -> {
-                        newBrand.setBrandId(id);
-                        return repository.save(newBrand);
-                    });
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("ok", "Cập nhật thương hiệu thành công", updatedBrand)
-            );
+                        brand.setBrandName(requestDTO.getBrandName());
+                        brand.setImgUrl(requestDTO.getImgUrl());
+                        brand.setUpdateAt(LocalDateTime.now()); // Cập nhật thời gian
+                        repository.save(brand);
+                        return ResponseEntity.status(HttpStatus.OK).body(
+                                new ResponseObject("ok", "Cập nhật thương hiệu thành công", brand)
+                        );
+                    }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                            new ResponseObject("failed", "Không tìm thấy thương hiệu với ID: " + id, "")
+                    ));
         }
 
         // Xóa thương hiệu
