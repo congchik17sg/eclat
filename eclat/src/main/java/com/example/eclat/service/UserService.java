@@ -218,6 +218,7 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        user.setStatus(true);
         userRepository.save(user);
 
         otpStorage.remove(email); // Xóa OTP sau khi sử dụng
