@@ -38,27 +38,27 @@ public class SecurityConfig {
 
 
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-//        httpSecurity
-//                .cors(cors -> cors.configurationSource(request -> {
-//                    CorsConfiguration config = new CorsConfiguration();
-//                    config.setAllowedOrigins(List.of("http://localhost:5173"));
-//                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-//                    config.setAllowedHeaders(List.of("*"));
-//                    config.setAllowCredentials(true);
-//                    return config;
-//                }))
-//                .authorizeHttpRequests(request -> request
-//                        .anyRequest().permitAll() // ⚡ Cho phép tất cả các request mà không cần xác thực
-//                )
-//                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
-//                        jwtConfigurer.decoder(jwtDecoder())
-//                ))
-//                .csrf(AbstractHttpConfigurer::disable); // Nếu không cần CSRF
-//
-//        return httpSecurity.build();
-//    }
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(List.of("http://localhost:5173"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
+                .authorizeHttpRequests(request -> request
+                        .anyRequest().permitAll() // ⚡ Cho phép tất cả các request mà không cần xác thực
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
+                        jwtConfigurer.decoder(jwtDecoder())
+                ))
+                .csrf(AbstractHttpConfigurer::disable); // Nếu không cần CSRF
+
+        return httpSecurity.build();
+    }
 
 
 
