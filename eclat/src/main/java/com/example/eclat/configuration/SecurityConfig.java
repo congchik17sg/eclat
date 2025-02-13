@@ -43,24 +43,14 @@ public class SecurityConfig {
         httpSecurity
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:5173")); // Điều chỉnh nếu cần
+                    config.setAllowedOrigins(List.of("http://localhost:5173"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);
                     return config;
                 }))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**"
-                        ).permitAll()
-                        // Giữ nguyên các API liên quan đến đăng nhập & token
-                        .requestMatchers(HttpMethod.POST, "/auth/log-in", "/auth/introspect", "/auth/verify").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.GET ,"/auth/verify").permitAll()
-                        // ⚡ Cho phép mọi request khác, miễn là có token hợp lệ
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // ⚡ Cho phép tất cả các request mà không cần xác thực
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
                         jwtConfigurer.decoder(jwtDecoder())
@@ -69,6 +59,7 @@ public class SecurityConfig {
 
         return httpSecurity.build();
     }
+
 
 
 

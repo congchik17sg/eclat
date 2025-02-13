@@ -67,4 +67,33 @@ public class CategoryController {
                 new ResponseObject("ok", "Thêm category thành công", repository.save(newCategory))
         );
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseObject> updateCategory(@RequestBody @Valid CategoryRequest requestDTO, @PathVariable Long id) {
+        return repository.findById(id)
+                .map(category -> {
+                    category.setCategoryName(requestDTO.getCategoryName());
+                    category.setDescription(requestDTO.getDescription());
+                    category.setUpdateAt(LocalDateTime.now()); // Cập nhật thời gian chỉnh sửa
+                    repository.save(category);
+                    return ResponseEntity.status(HttpStatus.OK).body(
+                            new ResponseObject("ok", "Cập nhật danh mục thành công", category)
+                    );
+                }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("failed", "Không tìm thấy danh mục với ID: " + id, "")
+                ));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseObject> deleteCategory(@PathVariable Long id) {
+        boolean exists = repository.existsById(id);
+        if (!exists) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResponseObject("failed", "Không tìm thấy danh mục", "")
+            );
+        }
+        repository.deleteById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ResponseObject("ok", "Danh mục đã được xóa thành công", "")
+        );
+    }
 }
