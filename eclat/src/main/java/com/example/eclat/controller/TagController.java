@@ -78,26 +78,22 @@ import java.util.Optional;
         }
 
         @PutMapping("/{id}")
-        public ResponseEntity<ResponseObject> updateTag(@RequestBody Tag newTag, @PathVariable Long id) {
-            Tag updatedTag = repository.findById(id)
+        public ResponseEntity<ResponseObject> updateTag(@RequestBody @Valid TagRequest requestDTO, @PathVariable Long id) {
+            return repository.findById(id)
                     .map(tag -> {
-                        tag.setTagName(newTag.getTagName());
-                        tag.setDescription(newTag.getDescription());
-                        tag.setCategory(newTag.getCategory());
+                        tag.setTagName(requestDTO.getTagName());
+                        tag.setDescription(requestDTO.getDescription());
+                        tag.setCategory(categoryRepository.findById(requestDTO.getCategoryId()).orElse(null));
                         tag.setUpdateAt(LocalDateTime.now());
-                        return repository.save(tag);
-                    }).orElseGet(() -> {
-                        newTag.setTagId(id);
-                        newTag.setCreateAt(LocalDateTime.now());
-                        newTag.setUpdateAt(LocalDateTime.now());
-                        return repository.save(newTag);
-                    });
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("OK", "Tag updated thành công", updatedTag)
-            );
+                        repository.save(tag);
+                        return ResponseEntity.status(HttpStatus.OK).body(
+                                new ResponseObject("ok", "Cập nhật tag thành công", tag)
+                        );
+                    }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                            new ResponseObject("failed", "Không tìm thấy tag với ID: " + id, "")
+                    ));
         }
 
-        // DELETE TAG
         @DeleteMapping("/{id}")
         public ResponseEntity<ResponseObject> deleteTag(@PathVariable Long id) {
             boolean exists = repository.existsById(id);
@@ -108,7 +104,7 @@ import java.util.Optional;
             }
             repository.deleteById(id);
             return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("ok", "Tag xóa thành công", "")
+                    new ResponseObject("ok", "Tag đã được xóa thành công", "")
             );
         }
     }

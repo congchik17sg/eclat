@@ -67,7 +67,6 @@ public class ProductController {
                     new ResponseObject("failed", "Invalid Tag, Brand, or SkinType ID", "")
             );
         }
-
         Product newProduct = new Product();
         newProduct.setProductName(requestDTO.getProductName());
         newProduct.setDescription(requestDTO.getDescription());
@@ -88,7 +87,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseObject> updateProduct(@RequestBody Product newProduct, @PathVariable Long id) {
-        Product updatedProduct = productRepository.findById(id)
+        return productRepository.findById(id)
                 .map(product -> {
                     product.setProductName(newProduct.getProductName());
                     product.setDescription(newProduct.getDescription());
@@ -98,17 +97,14 @@ public class ProductController {
                     product.setBrand(newProduct.getBrand());
                     product.setSkinType(newProduct.getSkinType());
                     product.setAttribute(newProduct.getAttribute());
-                    product.setUpdateAt(LocalDateTime.now());
-                    return productRepository.save(product);
-                }).orElseGet(() -> {
-                    newProduct.setProductId(id);
-                    newProduct.setCreateAt(LocalDateTime.now());
-                    newProduct.setUpdateAt(LocalDateTime.now());
-                    return productRepository.save(newProduct);
-                });
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new ResponseObject("OK", "Product updated successfully", updatedProduct)
-        );
+                    product.setUpdateAt(LocalDateTime.now()); // Cập nhật thời gian sửa đổi
+                    productRepository.save(product);
+                    return ResponseEntity.status(HttpStatus.OK).body(
+                            new ResponseObject("ok", "Cập nhật sản phẩm thành công", product)
+                    );
+                }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("failed", "Không tìm thấy sản phẩm với ID: " + id, "")
+                ));
     }
 
     @DeleteMapping("/{id}")
