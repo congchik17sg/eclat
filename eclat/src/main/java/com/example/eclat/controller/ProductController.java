@@ -1,15 +1,10 @@
 package com.example.eclat.controller;
 
-import com.example.eclat.entities.Product;
-import com.example.eclat.entities.Brand;
-import com.example.eclat.entities.SkinType;
-import com.example.eclat.entities.Tag;
+import com.example.eclat.entities.*;
+import com.example.eclat.model.request.OptionRequest;
 import com.example.eclat.model.request.ProductRequest;
 import com.example.eclat.model.response.ResponseObject;
-import com.example.eclat.repository.ProductRepository;
-import com.example.eclat.repository.BrandRepository;
-import com.example.eclat.repository.SkinTypeRepository;
-import com.example.eclat.repository.TagRepository;
+import com.example.eclat.repository.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +32,9 @@ public class ProductController {
 
     @Autowired
     private SkinTypeRepository skinTypeRepository;
+
+    @Autowired
+    private OptionRepository optionRepository;
 
     @GetMapping("")
     public List<Product> getAllProducts() {
@@ -64,10 +63,11 @@ public class ProductController {
 
         if (tag.isEmpty() || brand.isEmpty() || skinType.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    new ResponseObject("failed", "Invalid Tag, Brand, or SkinType ID", "")
+                    new ResponseObject("failed", "Tag, Brand hoặc SkinType không hợp lệ", "")
             );
         }
 
+        // Tạo Product mới
         Product newProduct = new Product();
         newProduct.setProductName(requestDTO.getProductName());
         newProduct.setDescription(requestDTO.getDescription());
@@ -81,14 +81,33 @@ public class ProductController {
         newProduct.setUpdateAt(LocalDateTime.now());
         newProduct.setStatus(true);
 
+        // Lưu Product vào DB trước để có ID
+        Product savedProduct = productRepository.save(newProduct);
+
+        // Xử lý danh sách Option nếu có
+        List<ProductOption> options = new ArrayList<>();
+        if (requestDTO.getOptions() != null && !requestDTO.getOptions().isEmpty()) {
+            for (OptionRequest optionDTO : requestDTO.getOptions()) {
+                ProductOption newOption = new ProductOption();
+                newOption.setProduct(savedProduct);
+                newOption.setOptionValue(optionDTO.getOptionValue());
+                newOption.setQuantity(optionDTO.getQuantity());
+                newOption.setOptionPrice(optionDTO.getOptionPrice());
+                newOption.setDiscPrice(optionDTO.getDiscPrice());
+                options.add(newOption);
+            }
+            optionRepository.saveAll(options); // Lưu tất cả options vào DB
+        }
+
         return ResponseEntity.status(HttpStatus.OK).body(
-                new ResponseObject("ok", "Product added successfully", productRepository.save(newProduct))
+                new ResponseObject("ok", "Thêm sản phẩm thành công", savedProduct)
         );
     }
 
+
     @PutMapping("/{id}")
     public ResponseEntity<ResponseObject> updateProduct(@RequestBody Product newProduct, @PathVariable Long id) {
-        Product updatedProduct = productRepository.findById(id)
+        return productRepository.findById(id)
                 .map(product -> {
                     product.setProductName(newProduct.getProductName());
                     product.setDescription(newProduct.getDescription());
@@ -98,17 +117,14 @@ public class ProductController {
                     product.setBrand(newProduct.getBrand());
                     product.setSkinType(newProduct.getSkinType());
                     product.setAttribute(newProduct.getAttribute());
-                    product.setUpdateAt(LocalDateTime.now());
-                    return productRepository.save(product);
-                }).orElseGet(() -> {
-                    newProduct.setProductId(id);
-                    newProduct.setCreateAt(LocalDateTime.now());
-                    newProduct.setUpdateAt(LocalDateTime.now());
-                    return productRepository.save(newProduct);
-                });
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new ResponseObject("OK", "Product updated successfully", updatedProduct)
-        );
+                    product.setUpdateAt(LocalDateTime.now()); // Cập nhật thời gian sửa đổi
+                    productRepository.save(product);
+                    return ResponseEntity.status(HttpStatus.OK).body(
+                            new ResponseObject("ok", "Cập nhật sản phẩm thành công", product)
+                    );
+                }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("failed", "Không tìm thấy sản phẩm với ID: " + id, "")
+                ));
     }
 
     @DeleteMapping("/{id}")
