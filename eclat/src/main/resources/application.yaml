@@ -25,11 +25,17 @@ spring:
       ddl-auto: update
     show-sql: true
 
+
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+cloudinary:
+  cloud-name: "dmjyr0m9b"
+  api-key: "929748567749484"
+  api-secret: "PTLrp9QOcKAZJmHTaDb448X8yXk"
 
 jwt:
   signerKey: "FpG5Qty7RiJdgZvxtMmwdEx/B1VysAWotu7Bgks2oTXCFvitcfYI1KeTHovA3Fx+"

@@ -1,11 +1,14 @@
 package com.example.eclat.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,27 +20,38 @@ import java.time.LocalDateTime;
 @Table(name = "Product")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) Long productId;
-    String productName;
-    String description;
-    String usageInstruct;
-    String originCountry;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long productId;
+    private String productName;
+    private String description;
+    private String usageInstruct;
+    private String originCountry;
 
     @ManyToOne
     @JoinColumn(name = "tag_id")
-    Tag tag;
+    private Tag tag;
 
     @ManyToOne
     @JoinColumn(name = "brand_id")
-    Brand brand;
+    private Brand brand;
 
     @ManyToOne
     @JoinColumn(name = "skintype_id")
-    SkinType skinType;
-    String attribute;
+    private SkinType skinType;
+
+    private String attribute;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    LocalDateTime createAt;
+    private LocalDateTime createAt;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    LocalDateTime updateAt;
-    Boolean status;
+    private LocalDateTime updateAt;
+
+    private Boolean status;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference // Tránh lỗi vòng lặp khi serialize JSON
+    private List<ProductOption> options = new ArrayList<>();
 }
