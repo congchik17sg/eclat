@@ -33,9 +33,16 @@ springdoc:
     path: /swagger-ui.html
 
 cloudinary:
-  cloud-name: "dmjyr0m9b"
-  api-key: "929748567749484"
-  api-secret: "PTLrp9QOcKAZJmHTaDb448X8yXk"
+  cloud-name: dmjyr0m9b
+  api-key: 929748567749484
+  api-secret: PTLrp9QOcKAZJmHTaDb448X8yXk
+
+  spring:
+    servlet:
+      multipart:
+        enabled: true
+        max-file-size: 10MB
+        max-request-size: 10MB
 
 jwt:
   signerKey: "FpG5Qty7RiJdgZvxtMmwdEx/B1VysAWotu7Bgks2oTXCFvitcfYI1KeTHovA3Fx+"
