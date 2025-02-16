@@ -41,4 +41,19 @@ public class CloudinaryService {
             throw new RuntimeException("Upload ảnh thất bại!", e);
         }
     }
+
+    public void deleteFile(String imageUrl) {
+        try {
+            String publicId = extractPublicIdFromUrl(imageUrl);
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi xóa ảnh trên Cloudinary: " + e.getMessage());
+        }
+    }
+
+    // Hàm hỗ trợ để lấy publicId từ URL ảnh Cloudinary
+    private String extractPublicIdFromUrl(String imageUrl) {
+        return imageUrl.substring(imageUrl.lastIndexOf("/") + 1, imageUrl.lastIndexOf(".")); // Cắt chuỗi để lấy publicId
+    }
+
 }

@@ -4,6 +4,8 @@ import com.cloudinary.Cloudinary;
 import com.example.eclat.entities.*;
 import com.example.eclat.model.request.OptionRequest;
 import com.example.eclat.model.request.ProductRequest;
+import com.example.eclat.model.response.OptionResponse;
+import com.example.eclat.model.response.ProductResponse;
 import com.example.eclat.model.response.ResponseObject;
 import com.example.eclat.repository.*;
 import com.example.eclat.service.CloudinaryService;
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/api/Products")
@@ -60,16 +63,44 @@ public class ProductController {
     public ResponseEntity<ResponseObject> findById(@PathVariable Long id) {
         Optional<Product> foundProduct = productRepository.findById(id);
 
-        if (foundProduct.isPresent()) {
-            Product product = foundProduct.get();
-            List<ProductOption> options = product.getOptions(); // Lấy danh sách options
-            return ResponseEntity.ok(new ResponseObject("ok", "Product found", product));
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject("failed", "Product not found with id: " + id, "")
-            );
+        if (foundProduct.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject("failed", "Product not found with id: " + id, ""));
         }
+
+        Product product = foundProduct.get();
+
+        List<OptionResponse> optionResponses = product.getOptions().stream()
+                .map(option -> new OptionResponse (
+                        option.getOptionId(),  // Fix: Dùng optionId thay vì getId()
+                        option.getOptionValue(), // Fix: Dùng optionValue thay vì optionName
+                        option.getQuantity(),
+                        option.getOptionPrice(), // Fix: Dùng optionPrice thay vì price
+                        option.getDiscPrice(),
+                        option.getCreateAt(),
+                        option.getUpdateAt()
+                ))
+                .collect(Collectors.toList());
+
+        // Chuyển đổi Product sang ProductResponse
+        ProductResponse productResponse = new ProductResponse(
+                product.getProductId(),
+                product.getProductName(),
+                product.getDescription(),
+                product.getUsageInstruct(),
+                product.getOriginCountry(),
+                product.getCreateAt(),
+                product.getUpdateAt(),
+                product.getStatus(),
+                product.getTag() != null ? product.getTag().getTagId() : null,
+                product.getBrand() != null ? product.getBrand().getBrandId() : null,
+                product.getSkinType() != null ? product.getSkinType().getId() : null,
+                optionResponses
+        );
+
+        return ResponseEntity.ok(new ResponseObject("ok", "Product found", productResponse));
     }
+
 
 
     @PostMapping("/insert")
@@ -188,8 +219,6 @@ public class ProductController {
                 new ResponseObject("ok", "Products found", products)
         );
     }
-
-
     @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseObject> uploadImage(
             @Parameter(description = "File ảnh cần upload", required = true)
@@ -215,8 +244,7 @@ public class ProductController {
                     new ResponseObject("failed", "Lỗi khi upload ảnh: " + e.getMessage(), "")
             );
         }
-
-        // Lưu ảnh vào Product hoặc Option
+     //Logic Business
         Image newImage = new Image();
         newImage.setImageUrl(imageUrl);
         newImage.setCreateAt(LocalDateTime.now());
