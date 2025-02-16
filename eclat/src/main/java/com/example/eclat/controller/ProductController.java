@@ -1,29 +1,28 @@
 package com.example.eclat.controller;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.example.eclat.entities.*;
 import com.example.eclat.model.request.OptionRequest;
 import com.example.eclat.model.request.ProductRequest;
+import com.example.eclat.model.response.OptionResponse;
+import com.example.eclat.model.response.ProductResponse;
 import com.example.eclat.model.response.ResponseObject;
 import com.example.eclat.repository.*;
 import com.example.eclat.service.CloudinaryService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/api/Products")
@@ -35,7 +34,12 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
-    private CloudinaryService cloudinaryService;
+    private final CloudinaryService cloudinaryService;
+    @Autowired
+    public ProductController (CloudinaryService cloudinaryService) {
+        this.cloudinaryService = cloudinaryService;
+    }
+
     @Autowired
     private ImageRepository imageRepository;
     @Autowired
@@ -59,16 +63,44 @@ public class ProductController {
     public ResponseEntity<ResponseObject> findById(@PathVariable Long id) {
         Optional<Product> foundProduct = productRepository.findById(id);
 
-        if (foundProduct.isPresent()) {
-            Product product = foundProduct.get();
-            List<ProductOption> options = product.getOptions(); // Lấy danh sách options
-            return ResponseEntity.ok(new ResponseObject("ok", "Product found", product));
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject("failed", "Product not found with id: " + id, "")
-            );
+        if (foundProduct.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject("failed", "Product not found with id: " + id, ""));
         }
+
+        Product product = foundProduct.get();
+
+        List<OptionResponse> optionResponses = product.getOptions().stream()
+                .map(option -> new OptionResponse (
+                        option.getOptionId(),  // Fix: Dùng optionId thay vì getId()
+                        option.getOptionValue(), // Fix: Dùng optionValue thay vì optionName
+                        option.getQuantity(),
+                        option.getOptionPrice(), // Fix: Dùng optionPrice thay vì price
+                        option.getDiscPrice(),
+                        option.getCreateAt(),
+                        option.getUpdateAt()
+                ))
+                .collect(Collectors.toList());
+
+        // Chuyển đổi Product sang ProductResponse
+        ProductResponse productResponse = new ProductResponse(
+                product.getProductId(),
+                product.getProductName(),
+                product.getDescription(),
+                product.getUsageInstruct(),
+                product.getOriginCountry(),
+                product.getCreateAt(),
+                product.getUpdateAt(),
+                product.getStatus(),
+                product.getTag() != null ? product.getTag().getTagId() : null,
+                product.getBrand() != null ? product.getBrand().getBrandId() : null,
+                product.getSkinType() != null ? product.getSkinType().getId() : null,
+                optionResponses
+        );
+
+        return ResponseEntity.ok(new ResponseObject("ok", "Product found", productResponse));
     }
+
 
 
     @PostMapping("/insert")
@@ -187,76 +219,62 @@ public class ProductController {
                 new ResponseObject("ok", "Products found", products)
         );
     }
-
-    @Operation(
-            summary = "Upload ảnh cho Product hoặc Option",
-            description = "Upload ảnh lên Cloudinary và lưu vào Product hoặc Option",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = @Content(
-                            mediaType = "multipart/form-data",
-                            schema = @Schema(type = "string", format = "binary")
-                    )
-            )
-    )
-    @PostMapping("/upload-image")
+    @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseObject> uploadImage(
+            @Parameter(description = "File ảnh cần upload", required = true)
             @RequestParam("file") MultipartFile file,
+
+            @Parameter(description = "ID của sản phẩm (nếu muốn lưu vào sản phẩm)")
             @RequestParam(value = "productId", required = false) Long productId,
+
+            @Parameter(description = "ID của option (nếu muốn lưu vào option)")
             @RequestParam(value = "optionId", required = false) Long optionId
     ) {
-        try {
-            // Kiểm tra file hợp lệ
-            if (file.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                        new ResponseObject("failed", "File ảnh không được để trống", "")
-                );
-            }
-
-            // Kiểm tra chỉ có 1 trong 2 ID được gửi
-            if ((productId != null && optionId != null) || (productId == null && optionId == null)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                        new ResponseObject("failed", "Phải cung cấp một trong hai: productId hoặc optionId", "")
-                );
-            }
-
-            // Upload file lên Cloudinary
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            String imageUrl = uploadResult.get("url").toString();
-
-            // Xử lý lưu ảnh vào database
-            Image image = new Image();
-            image.setImageUrl(imageUrl);
-
-            if (productId != null) {
-                Optional<Product> product = productRepository.findById(productId);
-                if (product.isPresent()) {
-                    image.setProduct(product.get());
-                } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                            new ResponseObject("failed", "Không tìm thấy Product với ID: " + productId, "")
-                    );
-                }
-            } else {
-                Optional<ProductOption> option = optionRepository.findById(optionId);
-                if (option.isPresent()) {
-                    image.setOption(option.get());
-                } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                            new ResponseObject("failed", "Không tìm thấy Option với ID: " + optionId, "")
-                    );
-                }
-            }
-
-            imageRepository.save(image);
-
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("ok", "Upload ảnh thành công", image)
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new ResponseObject("failed", "File không được để trống!", "")
             );
-
-        } catch (IOException e) {
+        }
+        // Upload file lên Cloudinary
+        String imageUrl;
+        try {
+            imageUrl = cloudinaryService.uploadFile(file);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     new ResponseObject("failed", "Lỗi khi upload ảnh: " + e.getMessage(), "")
             );
         }
+     //Logic Business
+        Image newImage = new Image();
+        newImage.setImageUrl(imageUrl);
+        newImage.setCreateAt(LocalDateTime.now());
+        newImage.setUpdateAt(LocalDateTime.now());
+        if (productId != null) {
+            Optional<Product> product = productRepository.findById(productId);
+            if (product.isPresent()) {
+                newImage.setProduct(product.get());
+                imageRepository.save(newImage);
+                return ResponseEntity.ok(new ResponseObject("ok", "Ảnh đã được lưu vào Product", imageUrl));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("failed", "Không tìm thấy Product với ID: " + productId, "")
+                );
+            }
+        } else if (optionId != null) {
+            Optional<ProductOption> option = optionRepository.findById(optionId);
+            if (option.isPresent()) {
+                newImage.setOption(option.get());
+                imageRepository.save(newImage);
+                return ResponseEntity.ok(new ResponseObject("ok", "Ảnh đã được lưu vào Option", imageUrl));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("failed", "Không tìm thấy Option với ID: " + optionId, "")
+                );
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ResponseObject("failed", "Bạn cần cung cấp productId hoặc optionId", "")
+        );
     }
 }

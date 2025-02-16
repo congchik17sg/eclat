@@ -22,6 +22,7 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
+
     private String productName;
     private String description;
     private String usageInstruct;
@@ -50,8 +51,10 @@ public class Product {
     private Boolean status;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Image> images = new ArrayList<>();
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference // Tránh lỗi vòng lặp khi serialize JSON
+    @JsonManagedReference
     private List<ProductOption> options = new ArrayList<>();
 }

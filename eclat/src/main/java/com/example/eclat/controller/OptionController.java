@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -94,4 +95,23 @@ public class OptionController {
                 new ResponseObject("ok", "Option deleted successfully", "")
         );
     }
+    @PatchMapping("/options/{id}/quantity")
+    public ResponseEntity<ResponseObject> updateProductOptionQuantity(@PathVariable Long id, @RequestParam int quantity) {
+        Optional<ProductOption> foundOption =optionRepository.findById(id);
+
+        if (foundOption.isPresent()) {
+            ProductOption productOption = foundOption.get();
+            productOption.setQuantity(quantity); // Cập nhật số lượng của ProductOption
+            productOption.setUpdateAt(LocalDateTime.now()); // Cập nhật thời gian sửa đổi
+            optionRepository.save(productOption);
+
+            return ResponseEntity.ok(new ResponseObject("ok", "ProductOption quantity updated successfully", productOption));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResponseObject("failed", "ProductOption not found with id: " + id, "")
+            );
+        }
+    }
+
+
 }

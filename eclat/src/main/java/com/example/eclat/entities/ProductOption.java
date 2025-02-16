@@ -2,6 +2,7 @@ package com.example.eclat.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,7 +24,7 @@ public class ProductOption {
 
         @ManyToOne
         @JoinColumn(name = "product_id", nullable = false)
-        @JsonBackReference // Tránh lỗi vòng lặp khi serialize JSON
+        @JsonBackReference
         private Product product;
 
         private String optionValue;
@@ -38,5 +39,6 @@ public class ProductOption {
         private LocalDateTime updateAt;
 
         @OneToMany(mappedBy = "option", cascade = CascadeType.ALL, orphanRemoval = true)
+        @JsonManagedReference
         private List<Image> images = new ArrayList<>();
 }
