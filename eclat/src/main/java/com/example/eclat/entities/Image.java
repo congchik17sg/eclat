@@ -1,5 +1,6 @@
 package com.example.eclat.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,19 +17,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Image {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long imageId; // ID tự động tăng
+    private Long imageId;
 
-    private String imageUrl; // Link ảnh lưu trên Cloudinary hoặc server
+    private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = true)
+    @JsonBackReference
     private Product product;
 
     @ManyToOne
     @JoinColumn(name = "option_id", nullable = true)
+    @JsonBackReference
     private ProductOption option;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
