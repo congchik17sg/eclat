@@ -30,4 +30,6 @@ public class ProductResponse {
     Long skinTypeId;
 
     private List<OptionResponse> options;
+    List<String> productImages;
+
 }
