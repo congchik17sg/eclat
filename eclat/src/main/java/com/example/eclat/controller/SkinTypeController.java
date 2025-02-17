@@ -48,5 +48,12 @@ public class SkinTypeController {
                 .build();
     }
 
+    @DeleteMapping("{skintypeId}")
+    ApiResponse<String> deleteSkintype(@PathVariable Long skintypeId) {
+        return ApiResponse.<String>builder()
+                .result("Skintype Disbled")
+                .build();
+    }
+
 
 }

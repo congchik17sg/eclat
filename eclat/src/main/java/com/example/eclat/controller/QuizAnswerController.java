@@ -23,7 +23,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class QuizAnswerController {
 
-    private final QuizAnswerService quizAnswerService;
+    QuizAnswerService quizAnswerService;
 
     @PostMapping
     public ApiResponse<QuizAnswerResponse> createAnswer(@RequestBody QuizAnswerRequest request) {

@@ -8,6 +8,7 @@ import com.example.eclat.model.request.quiz.SkinTypeRequest;
 import com.example.eclat.model.response.quiz.SkinTypeResponse;
 import com.example.eclat.repository.SkinTypeRepository;
 import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Slf4j
+
 public class SkinTypeService {
 
     @Autowired
@@ -49,6 +51,12 @@ public class SkinTypeService {
         skinTypeMapper.updateSkinType(skinType, request);
         skinTypeRepository.save(skinType);
         return skinTypeMapper.toSkinTypeResponse(skinType);
+    }
+    public void deleteSkintype(Long skintypeId){
+        SkinType skinType = skinTypeRepository.findById(skintypeId).
+                orElseThrow(() -> new RuntimeException("Skin not found"));
+        skinType.setStatus(false);
+        skinTypeRepository.save(skinType);
     }
 
 }

@@ -4,18 +4,21 @@ package com.example.eclat.model.request.quiz;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SkinTypeRequest {
+public class FeedbackRequest {
 
-
-    String skinName;
-    String description;
-    boolean status;
-
+    String text;
+    int rating;
+    String userId;
+    Long productId;
+    LocalDate create_at;
+    LocalDate update_at;
 
 }
