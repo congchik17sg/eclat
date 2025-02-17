@@ -25,6 +25,8 @@ public class SkinType {
 
     String description;
 
+    boolean status;
+
     @OneToMany(mappedBy = "skinType", cascade = CascadeType.ALL, orphanRemoval = true)
     List<QuizAnswer> quizAnswers;
 

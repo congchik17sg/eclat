@@ -1,8 +1,9 @@
 package com.example.eclat.model.response.quiz;
 
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -10,11 +11,16 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SkinTypeResponse {
+public class FeedbackResponse {
 
-    Long id;
-    String skinName;
-    String description;
-    boolean status;
+
+    String text;
+    int rating;
+    String username;
+    String productname;
+    
+
+    LocalDate create_at;
+    LocalDate update_at;
 
 }
