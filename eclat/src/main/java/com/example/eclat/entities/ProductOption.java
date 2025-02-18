@@ -24,7 +24,7 @@ public class ProductOption {
 
         @ManyToOne
         @JoinColumn(name = "product_id", nullable = false)
-        @JsonBackReference
+        @JsonBackReference("product-option")
         private Product product;
 
         private String optionValue;
@@ -39,6 +39,6 @@ public class ProductOption {
         private LocalDateTime updateAt;
 
         @OneToMany(mappedBy = "option", cascade = CascadeType.ALL, orphanRemoval = true)
-        @JsonManagedReference
+        @JsonManagedReference("option-image")
         private List<Image> images = new ArrayList<>();
 }

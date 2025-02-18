@@ -1,5 +1,6 @@
 package com.example.eclat.model.response;
 
+import com.example.eclat.entities.Image;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +31,6 @@ public class ProductResponse {
     Long skinTypeId;
 
     private List<OptionResponse> options;
-    List<String> productImages;
+    List<Image> productImages;
     String attribute;
 }

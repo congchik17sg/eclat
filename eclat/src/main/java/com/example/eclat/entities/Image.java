@@ -25,12 +25,12 @@ public class Image {
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = true)
-    @JsonBackReference
+    @JsonBackReference("product-image")
     private Product product;
 
     @ManyToOne
     @JoinColumn(name = "option_id", nullable = true)
-    @JsonBackReference
+    @JsonBackReference("option-image")
     private ProductOption option;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
