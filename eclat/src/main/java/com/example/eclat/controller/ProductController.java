@@ -70,15 +70,22 @@ public class ProductController {
 
         Product product = foundProduct.get();
 
+        // Lấy danh sách ảnh của Product
+        List<String> productImages = product.getImages().stream()
+                .map(Image::getImageUrl)
+                .collect(Collectors.toList());
+
+        // Lấy danh sách Option và danh sách ảnh trong từng Option
         List<OptionResponse> optionResponses = product.getOptions().stream()
-                .map(option -> new OptionResponse (
-                        option.getOptionId(),  // Fix: Dùng optionId thay vì getId()
-                        option.getOptionValue(), // Fix: Dùng optionValue thay vì optionName
+                .map(option -> new OptionResponse(
+                        option.getOptionId(),
+                        option.getOptionValue(),
                         option.getQuantity(),
-                        option.getOptionPrice(), // Fix: Dùng optionPrice thay vì price
+                        option.getOptionPrice(),
                         option.getDiscPrice(),
                         option.getCreateAt(),
-                        option.getUpdateAt()
+                        option.getUpdateAt(),
+                        option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()) // Lấy ảnh của Option
                 ))
                 .collect(Collectors.toList());
 
@@ -95,13 +102,12 @@ public class ProductController {
                 product.getTag() != null ? product.getTag().getTagId() : null,
                 product.getBrand() != null ? product.getBrand().getBrandId() : null,
                 product.getSkinType() != null ? product.getSkinType().getId() : null,
-                optionResponses
+                optionResponses,
+                productImages // Thêm danh sách ảnh của Product
         );
 
         return ResponseEntity.ok(new ResponseObject("ok", "Product found", productResponse));
     }
-
-
 
     @PostMapping("/insert")
     public ResponseEntity<ResponseObject> insertProduct(@RequestBody @Valid ProductRequest requestDTO) {
@@ -272,7 +278,6 @@ public class ProductController {
                 );
             }
         }
-
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 new ResponseObject("failed", "Bạn cần cung cấp productId hoặc optionId", "")
         );

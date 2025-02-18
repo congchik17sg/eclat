@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/images")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Image", description = "Uploading Image for Product and Product Option")
 public class ImageController {
     @Autowired
     private Cloudinary cloudinary;
