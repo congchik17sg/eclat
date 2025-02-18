@@ -31,5 +31,5 @@ public class ProductResponse {
 
     private List<OptionResponse> options;
     List<String> productImages;
-
+    String attribute;
 }

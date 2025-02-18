@@ -40,6 +40,12 @@ public class SkinTypeService {
         return skinTypeMapper.toSkinTypeResponse(skinType);
     }
 
+    public SkinTypeResponse getSkinTypeById(Long skintypeId) {
+    SkinType skinType = skinTypeRepository.findById(skintypeId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy skin"));
+    return skinTypeMapper.toSkinTypeResponse(skinType);
+    }
+
     public List<SkinTypeResponse> getSkinType() {
         return skinTypeRepository.findAll().stream()
                 .map(skinTypeMapper::toSkinTypeResponse).toList();
