@@ -71,8 +71,8 @@ public class ProductController {
         Product product = foundProduct.get();
 
         // Lấy danh sách ảnh của Product
-        List<String> productImages = product.getImages().stream()
-                .map(Image::getImageUrl)
+        List<Image> productImages = product.getImages().stream()
+                // .map(Image::getImageUrl)
                 .collect(Collectors.toList());
 
         // Lấy danh sách Option và danh sách ảnh trong từng Option
