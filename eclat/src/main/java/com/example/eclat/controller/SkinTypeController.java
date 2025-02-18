@@ -55,5 +55,12 @@ public class SkinTypeController {
                 .build();
     }
 
+    @GetMapping("{skintypeId}")
+    ApiResponse<SkinTypeResponse> getSkinTypeById(@PathVariable Long skintypeId) {
+    return ApiResponse.<SkinTypeResponse>builder()
+            .result(skinTypeService.getSkinTypeById(skintypeId))
+            .build();
+}
+
 
 }

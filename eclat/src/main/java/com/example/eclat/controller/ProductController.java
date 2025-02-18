@@ -103,7 +103,8 @@ public class ProductController {
                 product.getBrand() != null ? product.getBrand().getBrandId() : null,
                 product.getSkinType() != null ? product.getSkinType().getId() : null,
                 optionResponses,
-                productImages // Thêm danh sách ảnh của Product
+                productImages, // Thêm danh sách ảnh của Product
+                product.getAttribute()
         );
 
         return ResponseEntity.ok(new ResponseObject("ok", "Product found", productResponse));
