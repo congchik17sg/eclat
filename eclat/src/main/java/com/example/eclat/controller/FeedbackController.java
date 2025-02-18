@@ -9,10 +9,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/feedback")
@@ -30,5 +29,34 @@ public class FeedbackController {
                 .result((feedbackService.createFeedback(request)))
                 .build();
     }
+    @GetMapping
+    public ApiResponse<List<FeedbackResponse>> getAllFeedback() {
+        return ApiResponse.<List<FeedbackResponse>>builder()
+                .result(feedbackService.getAllFeedback())
+                .build();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ApiResponse<List<FeedbackResponse>> getFeedbackByUserId(@PathVariable String userId) {
+        return ApiResponse.<List<FeedbackResponse>>builder()
+                .result(feedbackService.getFeedbackByUserId(userId))
+                .build();
+    }
+
+    @PutMapping("/{feedbackId}")
+    public ApiResponse<FeedbackResponse> updateFeedbackById(@PathVariable Long feedbackId, @RequestBody FeedbackRequest request) {
+        return ApiResponse.<FeedbackResponse>builder()
+                .result(feedbackService.updateFeedbackById(feedbackId, request))
+                .build();
+    }
+
+    @DeleteMapping("/{feedbackId}")
+    public ApiResponse<String> deleteFeedbackById(@PathVariable Long feedbackId) {
+        feedbackService.deleteFeedbackById(feedbackId);
+        return ApiResponse.<String>builder()
+                .result("Feedback deleted successfully")
+                .build();
+    }
+
 
 }

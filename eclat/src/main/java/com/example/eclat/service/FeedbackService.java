@@ -18,9 +18,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@NoArgsConstructor
+
 public class FeedbackService {
 
 
@@ -70,5 +74,56 @@ public class FeedbackService {
 
 
     }
+    public List<FeedbackResponse> getAllFeedback() {
+        return feedbackRepository.findAll().stream()
+                .map(feedback -> FeedbackResponse.builder()
+                        .text(feedback.getText())
+                        .rating(feedback.getRating())
+                        .username(feedback.getUser().getUsername())
+                        .productname(feedback.getProduct().getProductName())
+                        .create_at(feedback.getCreate_at())
+                        .update_at(feedback.getUpdate_at())
+                        .build())
+                .collect(Collectors.toList());
+    }
+    public List<FeedbackResponse> getFeedbackByUserId(String userId) {
+        return feedbackRepository.findByUserId(userId).stream().map(feedback -> FeedbackResponse.builder()
+                .text(feedback.getText())
+                .rating(feedback.getRating())
+                .username(feedback.getUser().getUsername())
+                .productname(feedback.getProduct().getProductName())
+                .create_at(feedback.getCreate_at())
+                .update_at(feedback.getUpdate_at())
+                .build()).collect(Collectors.toList());
+    }
+
+    public FeedbackResponse updateFeedbackById(Long feedbackId, FeedbackRequest request) {
+        FeedBack feedback = feedbackRepository.findById(feedbackId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy feedback"));
+
+        feedback.setText(request.getText());
+        feedback.setRating(request.getRating());
+        feedback.setUpdate_at(LocalDate.now());
+
+        FeedBack updatedFeedback = feedbackRepository.save(feedback);
+
+        return FeedbackResponse.builder()
+                .text(updatedFeedback.getText())
+                .rating(updatedFeedback.getRating())
+                .username(updatedFeedback.getUser().getUsername())
+                .productname(updatedFeedback.getProduct().getProductName())
+                .create_at(updatedFeedback.getCreate_at())
+                .update_at(updatedFeedback.getUpdate_at())
+                .build();
+    }
+
+    public void deleteFeedbackById(Long feedbackId) {
+        if (!feedbackRepository.existsById(feedbackId)) {
+            throw new RuntimeException("Không tìm thấy feedback để xoá");
+        }
+        feedbackRepository.deleteById(feedbackId);
+    }
+
+
 
 }
