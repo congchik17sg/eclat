@@ -1,11 +1,11 @@
 package com.example.eclat.service;
 
 
-import com.example.eclat.entities.*;
-import com.example.eclat.exception.AppException;
-import com.example.eclat.exception.ErrorCode;
+import com.example.eclat.entities.QuizAnswer;
+import com.example.eclat.entities.QuizQuestion;
+import com.example.eclat.entities.SkinType;
+import com.example.eclat.entities.UserQuizResult;
 import com.example.eclat.mapper.QuizQuestionMapper;
-import com.example.eclat.model.request.quiz.QuizQuestionRequest;
 import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
 import com.example.eclat.model.response.quiz.QuizQuestionResponse;
 import com.example.eclat.repository.*;
@@ -14,9 +14,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,23 +38,37 @@ public class QuizQuestionService {
     UserQuizResultRepository userQuizResultRepository;
     @Autowired
     UserRepository userRepository;
-
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     @Autowired
     QuizQuestionMapper quizQuestionMapper;
+    public QuizQuestionService(CloudinaryService cloudinaryService,
+                               QuizQuestionRepository quizQuestionRepository,
+                               QuizQuestionMapper quizQuestionMapper) {
+        this.cloudinaryService = cloudinaryService;
+        this.quizQuestionRepository = quizQuestionRepository;
+        this.quizQuestionMapper = quizQuestionMapper;
+    }
 
 
-    public QuizQuestionResponse createQuiz(QuizQuestionRequest request) {
-        if (quizQuestionRepository.existsByQuestionText(request.getQuestion_text()))
-            throw new AppException(ErrorCode.USER_EXISTED);
+    public QuizQuestionResponse createQuiz(String questionText, MultipartFile file) {
+        String imageUrl = (file != null && !file.isEmpty())
+                ? cloudinaryService.uploadFile(file)
+                : null;
 
-        QuizQuestion quizQuestion = quizQuestionMapper.toQuizQuestion(request);
+        QuizQuestion quizQuestion = new QuizQuestion();
+        quizQuestion.setQuestionText(questionText);
+        quizQuestion.setImg_url(imageUrl);
+        quizQuestion.setCreateAt(LocalDate.now());
+        quizQuestion.setUpdateAt(LocalDate.now());
+
         quizQuestion = quizQuestionRepository.save(quizQuestion);
-
         return quizQuestionMapper.toQuizQuestionResponse(quizQuestion);
     }
 
-//    @PreAuthorize("hasRole('Admin')")
+
+    //    @PreAuthorize("hasRole('Admin')")
     public List<QuizQuestionResponse> getAllQuiz() {
         return quizQuestionRepository.findAll().stream()
                 .map(quizQuestionMapper::toQuizQuestionResponse).toList();

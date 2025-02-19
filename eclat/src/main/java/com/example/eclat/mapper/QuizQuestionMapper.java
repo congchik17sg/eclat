@@ -13,8 +13,8 @@ import org.mapstruct.MappingTarget;
 public interface QuizQuestionMapper {
 
     @Mapping(target = "questionText", source = "question_text")
-    @Mapping(target = "createAt", source = "create_at")
-    @Mapping(target = "updateAt", source = "update_at")
+    //@Mapping(target = "createAt", source = "create_at")
+    //@Mapping(target = "updateAt", source = "update_at")
     QuizQuestion toQuizQuestion(QuizQuestionRequest request);
 
     @Mapping(target = "question_text", source = "questionText") // Đảm bảo ánh xạ đúng tên

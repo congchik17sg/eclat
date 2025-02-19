@@ -32,8 +32,7 @@ public class QuizQuestion {
 
     @OneToMany(mappedBy = "quizQuestion", cascade = CascadeType.ALL, orphanRemoval = true)
     List<QuizAnswer> answers;
-
+    @Column(name = "img_url")
     String img_url;
-
 
 }

@@ -2,7 +2,6 @@ package com.example.eclat.controller;
 
 
 import com.example.eclat.entities.SkinType;
-import com.example.eclat.model.request.quiz.QuizQuestionRequest;
 import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
 import com.example.eclat.model.request.quiz.QuizSubmitRequest;
 import com.example.eclat.model.response.ApiResponse;
@@ -15,9 +14,11 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -32,12 +33,22 @@ public class QuizQuestionController {
     @Autowired
     QuizQuestionService quizService;
 
-    @PostMapping
-    ApiResponse<QuizQuestionResponse> createQuiz(@RequestBody QuizQuestionRequest request) {
+    @PostMapping(value = "/create-quiz", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<QuizQuestionResponse> createQuiz(
+            @RequestParam("question_text") String questionText,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
+        // Thử in log xem có nhận được questionText không
+        System.out.println("question_text = " + questionText);
+
+        // Xử lý tạo QuizQuestionResponse...
         return ApiResponse.<QuizQuestionResponse>builder()
-                .result(quizService.createQuiz(request))
+                .result(quizService.createQuiz(questionText, file))
                 .build();
     }
+
+
+
 
     @GetMapping
     ApiResponse<List<QuizQuestionResponse>> getAllQuiz() {

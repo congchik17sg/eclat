@@ -3,8 +3,6 @@ package com.example.eclat.model.request.quiz;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
-
 @Getter
 @Setter
 @Builder
@@ -14,9 +12,5 @@ import java.time.LocalDate;
 public class QuizQuestionRequest {
 
 //    String id;
-    String question_text;
-    LocalDate create_at;
-    LocalDate update_at;
-
-
+    String questionText;
 }
