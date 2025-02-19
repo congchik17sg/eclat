@@ -2,7 +2,6 @@ package com.example.eclat.controller;
 
 
 import com.example.eclat.entities.SkinType;
-import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
 import com.example.eclat.model.request.quiz.QuizSubmitRequest;
 import com.example.eclat.model.response.ApiResponse;
 import com.example.eclat.model.response.quiz.QuizQuestionResponse;
@@ -38,16 +37,12 @@ public class QuizQuestionController {
             @RequestParam("question_text") String questionText,
             @RequestParam(value = "file", required = false) MultipartFile file) {
 
-        // Thử in log xem có nhận được questionText không
         System.out.println("question_text = " + questionText);
 
-        // Xử lý tạo QuizQuestionResponse...
         return ApiResponse.<QuizQuestionResponse>builder()
                 .result(quizService.createQuiz(questionText, file))
                 .build();
     }
-
-
 
 
     @GetMapping
@@ -63,18 +58,32 @@ public class QuizQuestionController {
     }
 
 
-    @PutMapping("/{Id}")
-    ApiResponse<QuizQuestionResponse> updateQuiz(@PathVariable Long Id, @RequestBody QuizQuestionUpdateRequest request) {
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<QuizQuestionResponse> updateQuiz(
+            @PathVariable("id") Long id,
+            @RequestParam("question_text") String questionText,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
+        System.out.println("Update - question_text = " + questionText);
+
         return ApiResponse.<QuizQuestionResponse>builder()
-                .result(quizService.updateQuizById(Id, request))
+                .result(quizService.updateQuiz(id, questionText, file))
                 .build();
     }
+
 
     @DeleteMapping("/{Id}")
     ApiResponse<String> deleteUser(@PathVariable Long Id) {
         quizService.deleteQuizById(Id);
         return ApiResponse.<String>builder().result("Quiz has been deleted").build();
     }
+    @DeleteMapping("/{id}/image")
+    public ApiResponse<QuizQuestionResponse> deleteQuizImage(@PathVariable("id") Long id) {
+        return ApiResponse.<QuizQuestionResponse>builder()
+                .result(quizService.deleteQuizImage(id))
+                .build();
+    }
+
 
 
     @PostMapping("/submit")

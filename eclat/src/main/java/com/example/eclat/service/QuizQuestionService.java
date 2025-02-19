@@ -6,7 +6,6 @@ import com.example.eclat.entities.QuizQuestion;
 import com.example.eclat.entities.SkinType;
 import com.example.eclat.entities.UserQuizResult;
 import com.example.eclat.mapper.QuizQuestionMapper;
-import com.example.eclat.model.request.quiz.QuizQuestionUpdateRequest;
 import com.example.eclat.model.response.quiz.QuizQuestionResponse;
 import com.example.eclat.repository.*;
 import lombok.AccessLevel;
@@ -74,17 +73,47 @@ public class QuizQuestionService {
                 .map(quizQuestionMapper::toQuizQuestionResponse).toList();
     }
 
-    public QuizQuestionResponse updateQuizById(Long id, QuizQuestionUpdateRequest request) {
+    public QuizQuestionResponse updateQuiz(Long id, String questionText, MultipartFile file) {
+        // Tìm QuizQuestion theo id, nếu không tìm thấy thì ném ra RuntimeException
         QuizQuestion quizQuestion = quizQuestionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("quiz not found"));
-        quizQuestionMapper.updateQuizQuestion(quizQuestion, request);
-        return quizQuestionMapper.toQuizQuestionResponse(quizQuestionRepository.save(quizQuestion));
+                .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + id));
+
+        // Cập nhật nội dung câu hỏi
+        quizQuestion.setQuestionText(questionText);
+
+        // Nếu có file upload, thực hiện upload và cập nhật URL ảnh
+        if (file != null && !file.isEmpty()) {
+            String imageUrl = cloudinaryService.uploadFile(file);
+            quizQuestion.setImg_url(imageUrl);
+        }
+
+        // Cập nhật thời gian sửa
+        quizQuestion.setUpdateAt(LocalDate.now());
+
+        // Lưu lại đối tượng đã cập nhật
+        quizQuestion = quizQuestionRepository.save(quizQuestion);
+
+        // Chuyển đổi sang DTO để trả về response
+        return quizQuestionMapper.toQuizQuestionResponse(quizQuestion);
     }
+
 
     public void deleteQuizById(Long Id) {
         quizQuestionRepository.deleteById(Id);
     }
 
+    public QuizQuestionResponse deleteQuizImage(Long id) {
+        QuizQuestion quizQuestion = quizQuestionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + id));
+
+        if (quizQuestion.getImg_url() != null) {
+             cloudinaryService.deleteFile(quizQuestion.getImg_url());
+            quizQuestion.setImg_url(null);
+            quizQuestion.setUpdateAt(LocalDate.now());
+            quizQuestion = quizQuestionRepository.save(quizQuestion);
+        }
+        return quizQuestionMapper.toQuizQuestionResponse(quizQuestion);
+    }
 
     public SkinType determineSkinType(List<Long> selectedAnswerIds) {
         // Fetch all answers by their IDs
