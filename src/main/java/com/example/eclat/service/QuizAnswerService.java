@@ -67,6 +67,23 @@ public class QuizAnswerService {
                 .map(quizAnswerMapper::toQuizAnswerResponse).toList();
     }
 
+
+    public QuizAnswerResponse getQuizAnswerById(Long id) {
+        QuizAnswer quizAnswer = quizAnswerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Answer not found with ID: " + id));
+
+        return QuizAnswerResponse.builder()
+                .id(quizAnswer.getId())
+                .answerText(quizAnswer.getAnswerText())
+                .questionId(quizAnswer.getQuizQuestion().getId())
+                .questionText(quizAnswer.getQuizQuestion().getQuestionText())
+                .skinTypeId(quizAnswer.getSkinType() != null ? quizAnswer.getSkinType().getId() : null)
+                .skinName(quizAnswer.getSkinType() != null ? quizAnswer.getSkinType().getSkinName() : null)
+                .skinDescription(quizAnswer.getSkinType() != null ? quizAnswer.getSkinType().getDescription() : null)
+                .build();
+    }
+
+
     public QuizAnswerResponse updateAnswer(Long id, QuizAnswerRequest request) {
         QuizAnswer quizAnswer = quizAnswerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Answer not found with ID: " + id));

@@ -27,8 +27,8 @@ public class QuizAnswerController {
 
     @PostMapping
     public ApiResponse<QuizAnswerResponse> createAnswer(@RequestBody QuizAnswerRequest request) {
-//        QuizAnswerResponse response = quizAnswerService.createAnswer(request);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        //        QuizAnswerResponse response = quizAnswerService.createAnswer(request);
+        //        return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         return ApiResponse.<QuizAnswerResponse>builder()
                 .result(quizAnswerService.createAnswer(request))
@@ -36,7 +36,7 @@ public class QuizAnswerController {
     }
 
     @GetMapping
-    ApiResponse<List<QuizAnswerResponse>> getQuizAnswerUser() {
+    ApiResponse<List<QuizAnswerResponse>> getQuizAnswer() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("Username: {}", authentication.getName());
         authentication.getAuthorities().forEach(grantedAuthority ->
@@ -46,6 +46,14 @@ public class QuizAnswerController {
                 .result(quizAnswerService.getAllAnswer())
                 .build();
     }
+
+    @GetMapping("/{quizAnswerId}")
+    public ApiResponse<QuizAnswerResponse> getQuizAnswerById(@PathVariable Long quizAnswerId) {
+        return ApiResponse.<QuizAnswerResponse>builder()
+                .result(quizAnswerService.getQuizAnswerById(quizAnswerId))
+                .build();
+    }
+
 
     @PutMapping("{quizAnswerId}")
     ApiResponse<QuizAnswerResponse> updateQuizAnswer(@PathVariable Long quizAnswerId, @RequestBody QuizAnswerRequest request) {
