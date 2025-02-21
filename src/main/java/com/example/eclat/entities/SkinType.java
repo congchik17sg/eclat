@@ -4,6 +4,7 @@ package com.example.eclat.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class SkinType {
     boolean status;
 
     @OneToMany(mappedBy = "skinType", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     List<QuizAnswer> quizAnswers;
 
 }
