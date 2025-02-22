@@ -1,0 +1,59 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /eclat
+
+
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: nchicong2003@gmail.com
+    password: qzyjofgjnxrcwwxw
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  datasource:
+    url: "jdbc:mysql://localhost:3308/eclat"
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+cloudinary:
+  cloud-name: dmjyr0m9b
+  api-key: 929748567749484
+  api-secret: PTLrp9QOcKAZJmHTaDb448X8yXk
+
+  spring:
+    servlet:
+      multipart:
+        enabled: true
+        max-file-size: 10MB
+        max-request-size: 10MB
+
+jwt:
+  signerKey: "FpG5Qty7RiJdgZvxtMmwdEx/B1VysAWotu7Bgks2oTXCFvitcfYI1KeTHovA3Fx+"
+#logging:
+#  level:
+#    org.springframework.web: DEBUG
+#    org.springdoc: DEBUG
+#    org.springframework.security: DEBUG
+
+vnpay:
+  tmn-code: "3OHAUFP3"
+  hash-secret: "H65JPP9358I22WXCKF16GHPTX3J0HSOW"
+  pay-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+  return-url: "https://yourdomain.com/vnpay-return"
