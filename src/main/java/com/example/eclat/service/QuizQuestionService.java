@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.eclat.model.response.quiz.QuizAnswerResponse;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -69,7 +71,7 @@ public class QuizQuestionService {
 
 
     //    @PreAuthorize("hasRole('Admin')")
-    public List<QuizQuestionResponse> getAllQuiz() {
+   public List<QuizQuestionResponse> getAllQuiz() {
         return quizQuestionRepository.findAll().stream()
                 .map(quizQuestion -> QuizQuestionResponse.builder()
                         .id(String.valueOf(quizQuestion.getId()))

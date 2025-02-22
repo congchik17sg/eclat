@@ -17,7 +17,7 @@ spring:
           starttls:
             enable: true
   datasource:
-    url: "jdbc:mysql://localhost:3306/eclat"
+    url: "jdbc:mysql://localhost:3308/eclat"
     username: root
     password: 12345
   jpa:
