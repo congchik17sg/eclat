@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.example.eclat.model.response.quiz.QuizAnswerResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +71,25 @@ public class QuizQuestionService {
     //    @PreAuthorize("hasRole('Admin')")
     public List<QuizQuestionResponse> getAllQuiz() {
         return quizQuestionRepository.findAll().stream()
-                .map(quizQuestionMapper::toQuizQuestionResponse).toList();
+                .map(quizQuestion -> QuizQuestionResponse.builder()
+                        .id(String.valueOf(quizQuestion.getId()))
+                        .question_text(quizQuestion.getQuestionText())
+                        .create_at(quizQuestion.getCreateAt())
+                        .update_at(quizQuestion.getUpdateAt())
+                        .img_url(quizQuestion.getImg_url())
+                        .answers(quizQuestion.getAnswers().stream()
+                                .map(answer -> QuizAnswerResponse.builder()
+                                        .id(answer.getId())
+                                        .answerText(answer.getAnswerText())
+                                        .questionId(quizQuestion.getId())
+                                        .questionText(quizQuestion.getQuestionText())
+                                        .skinTypeId(answer.getSkinType() != null ? answer.getSkinType().getId() : null)
+                                        .skinName(answer.getSkinType() != null ? answer.getSkinType().getSkinName() : null)
+                                        .skinDescription(answer.getSkinType() != null ? answer.getSkinType().getDescription() : null)
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
     }
 
     public QuizQuestionResponse updateQuiz(Long id, String questionText, MultipartFile file) {
