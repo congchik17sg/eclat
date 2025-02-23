@@ -40,7 +40,7 @@ public class UserService {
 
     final PasswordEncoder passwordEncoder;
 
-    private final EmailService emailService;
+    final EmailService emailService;
 
     // Lưu OTP tạm thời (chỉ nên dùng cache, Redis hoặc database thay thế)
     private static final ConcurrentHashMap<String, String> otpStorage = new ConcurrentHashMap<>();

@@ -6,6 +6,7 @@ import com.example.eclat.entities.QuizQuestion;
 import com.example.eclat.entities.SkinType;
 import com.example.eclat.entities.UserQuizResult;
 import com.example.eclat.mapper.QuizQuestionMapper;
+import com.example.eclat.model.response.quiz.QuizAnswerResponse;
 import com.example.eclat.model.response.quiz.QuizQuestionResponse;
 import com.example.eclat.repository.*;
 import lombok.AccessLevel;
@@ -93,6 +94,9 @@ public class QuizQuestionService {
                         .build())
                 .toList();
     }
+
+
+
 
     public QuizQuestionResponse updateQuiz(Long id, String questionText, MultipartFile file) {
         // Tìm QuizQuestion theo id, nếu không tìm thấy thì ném ra RuntimeException
