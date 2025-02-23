@@ -205,7 +205,7 @@ public class ProductController {
         if (!exists) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("failed", "Product not found", "")
-            );
+            );  
         }
         productRepository.deleteById(id);
         return ResponseEntity.status(HttpStatus.OK).body(
