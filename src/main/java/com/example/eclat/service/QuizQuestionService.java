@@ -6,6 +6,7 @@ import com.example.eclat.entities.QuizQuestion;
 import com.example.eclat.entities.SkinType;
 import com.example.eclat.entities.UserQuizResult;
 import com.example.eclat.mapper.QuizQuestionMapper;
+import com.example.eclat.model.response.quiz.QuizAnswerResponse;
 import com.example.eclat.model.response.quiz.QuizQuestionResponse;
 import com.example.eclat.repository.*;
 import lombok.AccessLevel;
@@ -70,8 +71,29 @@ public class QuizQuestionService {
     //    @PreAuthorize("hasRole('Admin')")
     public List<QuizQuestionResponse> getAllQuiz() {
         return quizQuestionRepository.findAll().stream()
-                .map(quizQuestionMapper::toQuizQuestionResponse).toList();
+                .map(quizQuestion -> QuizQuestionResponse.builder()
+                        .id(String.valueOf(quizQuestion.getId()))
+                        .question_text(quizQuestion.getQuestionText())
+                        .create_at(quizQuestion.getCreateAt())
+                        .update_at(quizQuestion.getUpdateAt())
+                        .img_url(quizQuestion.getImg_url())
+                        .answers(quizQuestion.getAnswers().stream()
+                                .map(answer -> QuizAnswerResponse.builder()
+                                        .id(answer.getId())
+                                        .answerText(answer.getAnswerText())
+                                        .questionId(quizQuestion.getId())
+                                        .questionText(quizQuestion.getQuestionText())
+                                        .skinTypeId(answer.getSkinType() != null ? answer.getSkinType().getId() : null)
+                                        .skinName(answer.getSkinType() != null ? answer.getSkinType().getSkinName() : null)
+                                        .skinDescription(answer.getSkinType() != null ? answer.getSkinType().getDescription() : null)
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
     }
+
+
+
 
     public QuizQuestionResponse updateQuiz(Long id, String questionText, MultipartFile file) {
         // Tìm QuizQuestion theo id, nếu không tìm thấy thì ném ra RuntimeException
