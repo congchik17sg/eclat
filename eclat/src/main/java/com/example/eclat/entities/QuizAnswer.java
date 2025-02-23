@@ -4,9 +4,6 @@ package com.example.eclat.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -15,21 +12,23 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-public class SkinType {
+public class QuizAnswer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     @Column(nullable = false)
-    String skinName;
+    String answerText;
 
-    String description;
+    @ManyToOne
+    @JoinColumn(name = "quiz_question_id", nullable = false)
+    QuizQuestion quizQuestion;
 
-    boolean status;
 
-    @OneToMany(mappedBy = "skinType", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    List<QuizAnswer> quizAnswers;
+    @ManyToOne
+    @JoinColumn(name = "skin_type_id", nullable = true)
+    SkinType skinType;
+
 
 }
