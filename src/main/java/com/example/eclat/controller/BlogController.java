@@ -8,7 +8,6 @@ import com.example.eclat.model.response.ResponseObject;
 import com.example.eclat.repository.BlogImageRepository;
 import com.example.eclat.repository.BlogRepository;
 import com.example.eclat.repository.UserRepository;
-import com.example.eclat.service.BlogService;
 import com.example.eclat.service.CloudinaryService;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +22,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/blogs")
 public class BlogController {
-    private BlogService blogService;
 
     private final BlogRepository blogRepository;
     private final UserRepository userRepository;
@@ -117,15 +116,55 @@ public class BlogController {
 
 
 
-    @GetMapping
-    public ResponseEntity<List<BlogResponse>> getAllBlogs() {
-        return ResponseEntity.ok(blogService.getAllBlogs());
+    @GetMapping("/blogs/{id}")
+    public ResponseEntity<ResponseObject> getBlogById(@PathVariable("id") Long id) {
+        try {
+            Optional<Blog> blogOptional = blogRepository.findById(id);
+            if (blogOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("failed", "Không tìm thấy Blog với ID: " + id, "")
+                );
+            }
+            Blog blog = blogOptional.get();
+            BlogResponse blogResponse = new BlogResponse(
+                    blog.getBlogId(),
+                    blog.getTitle(),
+                    blog.getContent(),
+                    blog.getCreateAt(),
+                    blog.getUpdateAt(),
+                    blog.getUser().getUsername(),
+                    blog.getImages().stream().map(BlogImage::getImageUrl).collect(Collectors.toList())
+            );
+            return ResponseEntity.ok(new ResponseObject("ok", "Lấy blog thành công!", blogResponse));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ResponseObject("failed", "Lỗi khi lấy blog: " + e.getMessage(), "")
+            );
+        }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BlogResponse> getBlogById(@PathVariable Long id) {
-        return ResponseEntity.ok(blogService.getBlogById(id));
+    @GetMapping("/blogs")
+    public ResponseEntity<ResponseObject> getAllBlogs() {
+        try {
+            List<Blog> blogs = blogRepository.findAll();
+            List<BlogResponse> blogResponses = blogs.stream().map(blog ->
+                    new BlogResponse(
+                            blog.getBlogId(),
+                            blog.getTitle(),
+                            blog.getContent(),
+                            blog.getCreateAt(),
+                            blog.getUpdateAt(),
+                            blog.getUser().getUsername(),
+                            blog.getImages().stream().map(BlogImage::getImageUrl).collect(Collectors.toList())
+                    )
+            ).collect(Collectors.toList());
+            return ResponseEntity.ok(new ResponseObject("ok", "Lấy danh sách blog thành công!", blogResponses));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ResponseObject("failed", "Lỗi khi lấy danh sách blog: " + e.getMessage(), ""));
+        }
     }
+
 
     @PutMapping(value = "/blogs/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseObject> updateBlog(
@@ -194,10 +233,27 @@ public class BlogController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBlog(@PathVariable Long id) {
-        blogService.deleteBlog(id);
-        return ResponseEntity.ok("Blog deleted successfully.");
+    @DeleteMapping("/blogs/{id}")
+    public ResponseEntity<ResponseObject> deleteBlog(
+            @Parameter(description = "ID của blog cần xóa", required = true)
+            @PathVariable("id") Long id
+    ) {
+        try {
+            Optional<Blog> blogOptional = blogRepository.findById(id);
+            if (blogOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("failed", "Không tìm thấy blog với ID: " + id, "")
+                );
+            }
+            blogRepository.deleteById(id);
+            return ResponseEntity.ok(
+                    new ResponseObject("ok", "Xóa blog thành công!", "")
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ResponseObject("failed", "Lỗi khi xóa blog: " + e.getMessage(), "")
+            );
+        }
     }
 
 }
