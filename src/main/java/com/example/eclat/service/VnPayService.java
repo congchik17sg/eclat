@@ -41,10 +41,11 @@ public class VnPayService {
         // 🏗️ Xây URL
         StringBuilder queryUrl = new StringBuilder(VNPAY_URL + "?");
         for (Map.Entry<String, String> entry : vnp_Params.entrySet()) {
-            queryUrl.append(URLEncoder.encode(entry.getKey(), "UTF-8")).append("=")
-                    .append(URLEncoder.encode(entry.getValue(), "UTF-8")).append("&");
+            queryUrl.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII)).append("=")
+                    .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII)).append("&");
         }
         return queryUrl.substring(0, queryUrl.length() - 1);
+
     }
 
     private String getCurrentDateTime() {
@@ -60,17 +61,40 @@ public class VnPayService {
     public String hashAllFields(Map<String, String> fields, String secretKey) throws Exception {
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
+
         StringBuilder hashData = new StringBuilder();
-        for (String name : fieldNames) {
+        for (int i = 0; i < fieldNames.size(); i++) {
+            String name = fieldNames.get(i);
             String value = fields.get(name);
             if (value != null && !value.isEmpty()) {
-                hashData.append(URLEncoder.encode(name, StandardCharsets.UTF_8)).append('=')
-                        .append(URLEncoder.encode(value, StandardCharsets.UTF_8)).append('&');
+                hashData.append(URLEncoder.encode(name, StandardCharsets.US_ASCII)).append('=')
+                        .append(URLEncoder.encode(value, StandardCharsets.US_ASCII));
+                if (i < fieldNames.size() - 1) {
+                    hashData.append('&');
+                }
             }
         }
-        hashData.setLength(hashData.length() - 1); // 🔥 Xóa dấu & cuối cùng
         return hmacSHA512(secretKey, hashData.toString());
     }
+
+
+
+
+
+//    public String hashAllFields(Map<String, String> fields, String secretKey) throws Exception {
+//        List<String> fieldNames = new ArrayList<>(fields.keySet());
+//        Collections.sort(fieldNames);
+//        StringBuilder hashData = new StringBuilder();
+//        for (String name : fieldNames) {
+//            String value = fields.get(name);
+//            if (value != null && !value.isEmpty()) {
+//                hashData.append(URLEncoder.encode(name, StandardCharsets.UTF_8)).append('=')
+//                        .append(URLEncoder.encode(value, StandardCharsets.UTF_8)).append('&');
+//            }
+//        }
+//        hashData.setLength(hashData.length() - 1); // 🔥 Xóa dấu & cuối cùng
+//        return hmacSHA512(secretKey, hashData.toString());
+//    }
 
     private String hmacSHA512(String key, String data) throws Exception {
         Mac hmac = Mac.getInstance("HmacSHA512");
@@ -81,4 +105,62 @@ public class VnPayService {
         for (byte b : hashBytes) hash.append(String.format("%02x", b));
         return hash.toString();
     }
+    public boolean validateSignature(Map<String, String[]> params) throws Exception {
+        String[] secureHashArr = params.get("vnp_SecureHash");
+        if (secureHashArr == null || secureHashArr.length == 0) {
+            throw new RuntimeException("Missing vnp_SecureHash parameter");
+        }
+        String vnp_SecureHash = secureHashArr[0];
+
+        params.remove("vnp_SecureHash");
+        params.remove("vnp_SecureHashType");
+
+        Map<String, String> vnp_Params = new HashMap<>();
+        params.forEach((key, value) -> vnp_Params.put(key, value[0]));
+
+        String signValue = hashAllFields(vnp_Params, HASH_SECRET);
+        return signValue.equalsIgnoreCase(vnp_SecureHash);
+    }
+
+    public Map<String, String> processIpn(Map<String, String[]> params) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            boolean isValid = validateSignature(params);
+            if (isValid) {
+                String responseCode = getParamValue(params, "vnp_ResponseCode");
+                String txnRef = getParamValue(params, "vnp_TxnRef");
+                String amount = getParamValue(params, "vnp_Amount");
+
+                // Giả sử đã kiểm tra tồn tại txnRef, số tiền và trạng thái đơn hàng
+                if ("00".equals(responseCode)) {
+                    // Cập nhật trạng thái giao dịch thành công
+                    response.put("RspCode", "00");
+                    response.put("Message", "Confirm Success");
+                } else {
+                    // Giao dịch thất bại
+                    response.put("RspCode", "02");
+                    response.put("Message", "Transaction failed");
+                }
+            } else {
+                response.put("RspCode", "97");
+                response.put("Message", "Invalid Checksum");
+            }
+        } catch (Exception e) {
+            response.put("RspCode", "99");
+            response.put("Message", "Unknown error");
+        }
+        return response;
+    }
+
+    // Hỗ trợ lấy tham số từ map
+    private String getParamValue(Map<String, String[]> params, String key) {
+        String[] values = params.get(key);
+        if (values == null || values.length == 0) {
+            throw new RuntimeException("Missing parameter: " + key);
+        }
+        return values[0];
+    }
+
+
+
 }

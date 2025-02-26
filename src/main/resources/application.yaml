@@ -56,7 +56,6 @@ vnpay:
   tmnCode: "3OHAUFP3"
   hashSecret: "H65JPP9358I22WXCKF16GHPTX3J0HSOW"
   payUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-  returnUrl: "http://localhost:8080/eclat/api/payment/vnpay-return"
-  ipnUrl: "http://localhost:8080/eclat/api/payment/vnpay-ipn"
-
+  returnUrl: "http://localhost:8080/eclat/api/payment/ReturnUrl"
+  ipnUrl: "http://localhost:8080/eclat/api/payment/IPN"
 
