@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.example.eclat.entities.*;
 import com.example.eclat.model.request.OptionRequest;
 import com.example.eclat.model.request.ProductRequest;
+import com.example.eclat.model.response.FeedbackResponse;
 import com.example.eclat.model.response.OptionResponse;
 import com.example.eclat.model.response.ProductResponse;
 import com.example.eclat.model.response.ResponseObject;
@@ -55,8 +56,59 @@ public class ProductController {
     private OptionRepository optionRepository;
 
     @GetMapping("")
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public ResponseEntity<ResponseObject> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+
+        List<ProductResponse> productResponses = products.stream().map(product -> {
+            // Lấy danh sách ảnh của Product
+            List<Image> productImages = product.getImages().stream()
+                    .collect(Collectors.toList());
+
+            // Lấy danh sách Option và ảnh của từng Option
+            List<OptionResponse> optionResponses = product.getOptions().stream()
+                    .map(option -> new OptionResponse(
+                            option.getOptionId(),
+                            option.getOptionValue(),
+                            option.getQuantity(),
+                            option.getOptionPrice(),
+                            option.getDiscPrice(),
+                            option.getCreateAt(),
+                            option.getUpdateAt(),
+                            option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList())
+                    ))
+                    .collect(Collectors.toList());
+
+            // Lấy danh sách Feedback
+            List<FeedbackResponse> feedbackResponses = product.getFeedbacks().stream()
+                    .map(feedback -> new FeedbackResponse(
+                            feedback.getFeedback_id(),
+                            feedback.getText(),
+                            feedback.getUser().getId(),
+                            feedback.getUser().getUsername(),
+                            feedback.getRating()
+                    ))
+                    .collect(Collectors.toList());
+
+            return new ProductResponse(
+                    product.getProductId(),
+                    product.getProductName(),
+                    product.getDescription(),
+                    product.getUsageInstruct(),
+                    product.getOriginCountry(),
+                    product.getCreateAt(),
+                    product.getUpdateAt(),
+                    product.getStatus(),
+                    product.getTag() != null ? product.getTag().getTagId() : null,
+                    product.getBrand() != null ? product.getBrand().getBrandId() : null,
+                    product.getSkinType() != null ? product.getSkinType().getId() : null,
+                    optionResponses,
+                    productImages,
+                    product.getAttribute(),
+                    feedbackResponses
+            );
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(new ResponseObject("ok", "List of products", productResponses));
     }
 
     @GetMapping("/{id}")
@@ -72,7 +124,6 @@ public class ProductController {
 
         // Lấy danh sách ảnh của Product
         List<Image> productImages = product.getImages().stream()
-                // .map(Image::getImageUrl)
                 .collect(Collectors.toList());
 
         // Lấy danh sách Option và danh sách ảnh trong từng Option
@@ -89,7 +140,17 @@ public class ProductController {
                 ))
                 .collect(Collectors.toList());
 
-        // Chuyển đổi Product sang ProductResponse
+        // Lấy danh sách feedback của Product
+        List<FeedbackResponse> feedbackResponses = product.getFeedbacks().stream()
+                .map(feedback -> new FeedbackResponse(
+                        feedback.getFeedback_id(),
+                        feedback.getText(),
+                        feedback.getUser().getId(),
+                        feedback.getUser().getUsername(),
+                        feedback.getRating()
+                ))
+                .collect(Collectors.toList());
+
         ProductResponse productResponse = new ProductResponse(
                 product.getProductId(),
                 product.getProductName(),
@@ -103,12 +164,14 @@ public class ProductController {
                 product.getBrand() != null ? product.getBrand().getBrandId() : null,
                 product.getSkinType() != null ? product.getSkinType().getId() : null,
                 optionResponses,
-                productImages, // Thêm danh sách ảnh của Product
-                product.getAttribute()
+                productImages,
+                product.getAttribute(),
+                feedbackResponses
         );
 
         return ResponseEntity.ok(new ResponseObject("ok", "Product found", productResponse));
     }
+
 
     @PostMapping("/insert")
     public ResponseEntity<ResponseObject> insertProduct(@RequestBody @Valid ProductRequest requestDTO) {
