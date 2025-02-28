@@ -56,4 +56,9 @@ public class Order {
         updateAt = LocalDateTime.now();
     }
 
+    public BigDecimal getTotalPrices() {
+        return totalPrices;
+    }
+
+
 }
