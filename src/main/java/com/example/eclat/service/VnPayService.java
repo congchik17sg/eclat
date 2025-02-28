@@ -1,8 +1,15 @@
 package com.example.eclat.service;
 
+import com.example.eclat.entities.Order;
+import com.example.eclat.entities.Transaction;
+import com.example.eclat.repository.OrderRepository;
+import com.example.eclat.repository.TransactionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
@@ -17,6 +24,13 @@ public class VnPayService {
     private static final String TMN_CODE = "3OHAUFP3";
     private static final String HASH_SECRET = "H65JPP9358I22WXCKF16GHPTX3J0HSOW";
     private static final String RETURN_URL = "http://localhost:8080/eclat/api/payment/vnpay-return";
+    private static final String IPN_URL = "http://localhost:8080/eclat/api/payment/ipn";
+
+    @Autowired
+    private TransactionRepository transactionRepository;
+
+    @Autowired
+    private OrderRepository orderRepository; // Repository để lấy thông tin Order
 
     public String createPaymentUrl(int amount, String orderInfo, String ipAddress, String txnRef) throws Exception {
         Map<String, String> vnp_Params = new HashMap<>();
@@ -78,9 +92,6 @@ public class VnPayService {
     }
 
 
-
-
-
 //    public String hashAllFields(Map<String, String> fields, String secretKey) throws Exception {
 //        List<String> fieldNames = new ArrayList<>(fields.keySet());
 //        Collections.sort(fieldNames);
@@ -105,6 +116,7 @@ public class VnPayService {
         for (byte b : hashBytes) hash.append(String.format("%02x", b));
         return hash.toString();
     }
+
     public boolean validateSignature(Map<String, String[]> params) throws Exception {
         String[] secureHashArr = params.get("vnp_SecureHash");
         if (secureHashArr == null || secureHashArr.length == 0) {
@@ -122,35 +134,6 @@ public class VnPayService {
         return signValue.equalsIgnoreCase(vnp_SecureHash);
     }
 
-    public Map<String, String> processIpn(Map<String, String[]> params) {
-        Map<String, String> response = new HashMap<>();
-        try {
-            boolean isValid = validateSignature(params);
-            if (isValid) {
-                String responseCode = getParamValue(params, "vnp_ResponseCode");
-                String txnRef = getParamValue(params, "vnp_TxnRef");
-                String amount = getParamValue(params, "vnp_Amount");
-
-                // Giả sử đã kiểm tra tồn tại txnRef, số tiền và trạng thái đơn hàng
-                if ("00".equals(responseCode)) {
-                    // Cập nhật trạng thái giao dịch thành công
-                    response.put("RspCode", "00");
-                    response.put("Message", "Confirm Success");
-                } else {
-                    // Giao dịch thất bại
-                    response.put("RspCode", "02");
-                    response.put("Message", "Transaction failed");
-                }
-            } else {
-                response.put("RspCode", "97");
-                response.put("Message", "Invalid Checksum");
-            }
-        } catch (Exception e) {
-            response.put("RspCode", "99");
-            response.put("Message", "Unknown error");
-        }
-        return response;
-    }
 
     // Hỗ trợ lấy tham số từ map
     private String getParamValue(Map<String, String[]> params, String key) {
@@ -159,6 +142,9 @@ public class VnPayService {
             throw new RuntimeException("Missing parameter: " + key);
         }
         return values[0];
+    }
+    public String generateTxnRef() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 10); // Sinh mã ngẫu nhiên 10 ký tự
     }
 
 
