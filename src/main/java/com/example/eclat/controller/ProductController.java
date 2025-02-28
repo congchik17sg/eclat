@@ -60,11 +60,10 @@ public class ProductController {
         List<Product> products = productRepository.findAll();
 
         List<ProductResponse> productResponses = products.stream().map(product -> {
-            // Lấy danh sách ảnh của Product
-            List<Image> productImages = product.getImages().stream()
+            List<String> productImages = product.getImages().stream()
+                    .map(Image::getImageUrl)
                     .collect(Collectors.toList());
 
-            // Lấy danh sách Option và ảnh của từng Option
             List<OptionResponse> optionResponses = product.getOptions().stream()
                     .map(option -> new OptionResponse(
                             option.getOptionId(),
@@ -78,7 +77,6 @@ public class ProductController {
                     ))
                     .collect(Collectors.toList());
 
-            // Lấy danh sách Feedback
             List<FeedbackResponse> feedbackResponses = product.getFeedbacks().stream()
                     .map(feedback -> new FeedbackResponse(
                             feedback.getFeedback_id(),
@@ -98,9 +96,9 @@ public class ProductController {
                     product.getCreateAt(),
                     product.getUpdateAt(),
                     product.getStatus(),
-                    product.getTag() != null ? product.getTag().getTagId() : null,
-                    product.getBrand() != null ? product.getBrand().getBrandId() : null,
-                    product.getSkinType() != null ? product.getSkinType().getId() : null,
+                    product.getTag(),
+                    product.getBrand(),
+                    product.getSkinType(),
                     optionResponses,
                     productImages,
                     product.getAttribute(),
@@ -122,11 +120,10 @@ public class ProductController {
 
         Product product = foundProduct.get();
 
-        // Lấy danh sách ảnh của Product
-        List<Image> productImages = product.getImages().stream()
+        List<String> productImages = product.getImages().stream()
+                .map(Image::getImageUrl)
                 .collect(Collectors.toList());
 
-        // Lấy danh sách Option và danh sách ảnh trong từng Option
         List<OptionResponse> optionResponses = product.getOptions().stream()
                 .map(option -> new OptionResponse(
                         option.getOptionId(),
@@ -136,11 +133,10 @@ public class ProductController {
                         option.getDiscPrice(),
                         option.getCreateAt(),
                         option.getUpdateAt(),
-                        option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()) // Lấy ảnh của Option
+                        option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList());
 
-        // Lấy danh sách feedback của Product
         List<FeedbackResponse> feedbackResponses = product.getFeedbacks().stream()
                 .map(feedback -> new FeedbackResponse(
                         feedback.getFeedback_id(),
@@ -160,9 +156,9 @@ public class ProductController {
                 product.getCreateAt(),
                 product.getUpdateAt(),
                 product.getStatus(),
-                product.getTag() != null ? product.getTag().getTagId() : null,
-                product.getBrand() != null ? product.getBrand().getBrandId() : null,
-                product.getSkinType() != null ? product.getSkinType().getId() : null,
+                product.getTag(),
+                product.getBrand(),
+                product.getSkinType(),
                 optionResponses,
                 productImages,
                 product.getAttribute(),
@@ -171,6 +167,7 @@ public class ProductController {
 
         return ResponseEntity.ok(new ResponseObject("ok", "Product found", productResponse));
     }
+
 
 
     @PostMapping("/insert")
