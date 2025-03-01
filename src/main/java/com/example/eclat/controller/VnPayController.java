@@ -1,12 +1,16 @@
 package com.example.eclat.controller;
 
 import com.example.eclat.entities.Order;
+import com.example.eclat.entities.OrderDetail;
+import com.example.eclat.entities.ProductOption;
 import com.example.eclat.entities.Transaction;
+import com.example.eclat.repository.OptionRepository;
 import com.example.eclat.repository.TransactionRepository;
 import com.example.eclat.service.OrderService;
 import com.example.eclat.service.TransactionService;
 import com.example.eclat.service.VnPayService;
 import com.example.eclat.utils.VnpayUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +28,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/payment")
+@Tag(name = "Vnpay api ")
 public class VnPayController {
 
     @Autowired
@@ -33,6 +38,8 @@ public class VnPayController {
     private TransactionService transactionService;
     @Autowired
     private TransactionRepository transactionRepository;
+    @Autowired
+    private OptionRepository productOptionRepository;
 
     @Autowired
     private OrderService orderService;
@@ -47,45 +54,54 @@ public class VnPayController {
     }
 
     @GetMapping("/create")
-    public String createPayment(@RequestParam int amount,
-                                @RequestParam String orderInfo,
-                                @RequestParam Long orderId,
-                                HttpServletRequest request) throws Exception {
-        String ipAddress = request.getRemoteAddr();
-        if ("0:0:0:0:0:0:0:1".equals(ipAddress)) {
-            ipAddress = "127.0.0.1";
+    public ResponseEntity<?> createPayment(@RequestParam int amount,
+                                           @RequestParam String orderInfo,
+                                           @RequestParam Long orderId,
+                                           HttpServletRequest request) throws Exception {
+        try {
+            String ipAddress = request.getRemoteAddr();
+            if ("0:0:0:0:0:0:0:1".equals(ipAddress)) {
+                ipAddress = "127.0.0.1";
+            }
+
+            // Lấy thông tin đơn hàng
+            Optional<Order> orderOpt = orderService.getOrderById(orderId);
+            if (orderOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "❌ Order không tồn tại!"));
+            }
+
+            Order order = orderOpt.get();
+
+            // Kiểm tra nếu đơn hàng đã có giao dịch thành công
+            Optional<Transaction> existingTransaction = transactionRepository.findByOrder(order);
+            if (existingTransaction.isPresent() && "SUCCESS".equals(existingTransaction.get().getTransactionStatus())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "❌ Đơn hàng đã được thanh toán!"));
+            }
+
+            // Tạo mã giao dịch duy nhất (txnRef)
+            String txnRef = vnPayService.generateTxnRef();
+
+            // Tạo transaction trạng thái PENDING
+            Transaction transaction = Transaction.builder()
+                    .order(order)
+                    .amount(BigDecimal.valueOf(amount))
+                    .transactionStatus("PENDING")
+                    .paymentMethod("VNPAY")
+                    .vnpTxnRef(txnRef)
+                    .createAt(LocalDateTime.now())
+                    .build();
+
+            transactionRepository.save(transaction);
+
+            // Tạo URL thanh toán và trả về
+            String paymentUrl = vnPayService.createPaymentUrl(amount, orderInfo, ipAddress, txnRef);
+            return ResponseEntity.ok(Map.of("paymentUrl", paymentUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "❌ Lỗi hệ thống: " + e.getMessage()));
         }
-
-        // Lấy thông tin đơn hàng
-        Optional<Order> orderOpt = orderService.getOrderById(orderId);
-        if (orderOpt.isEmpty()) {
-            throw new IllegalArgumentException("Order không tồn tại!");
-        }
-        Order order = orderOpt.get();
-
-        // Kiểm tra nếu đã có giao dịch cho đơn hàng này
-        Optional<Transaction> existingTransaction = transactionRepository.findByOrder(order);
-        if (existingTransaction.isPresent()) {
-            throw new IllegalStateException("Đơn hàng này đã có giao dịch!");
-        }
-
-        // Tạo mã giao dịch duy nhất (txnRef)
-        String txnRef = vnPayService.generateTxnRef(); // Viết hàm này trong VnPayService
-
-        // Tạo transaction trạng thái PENDING
-        Transaction transaction = Transaction.builder()
-                .order(order)
-                .amount(BigDecimal.valueOf(amount))
-                .transactionStatus("PENDING")
-                .paymentMethod("VNPAY")
-                .vnpTxnRef(txnRef)
-                .createAt(LocalDateTime.now())
-                .build();
-
-        transactionRepository.save(transaction);
-
-        // Tạo URL thanh toán và trả về
-        return vnPayService.createPaymentUrl(amount, orderInfo, ipAddress, txnRef);
     }
 
 
@@ -121,6 +137,18 @@ public class VnPayController {
             // 🔹 Cập nhật trạng thái đơn hàng nếu thanh toán thành công
             if ("SUCCESS".equals(status)) {
                 order.setStatus("PAID");
+
+                // 🔹 Giảm số lượng sản phẩm trong ProductOption
+                for (OrderDetail orderDetail : order.getOrderDetails()) {
+                    ProductOption productOption = orderDetail.getProductOption();
+                    int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
+                    if (newQuantity < 0) {
+                        return ResponseEntity.badRequest().body("❌ Không đủ hàng trong kho!");
+                    }
+                    productOption.setQuantity(newQuantity);
+                    productOptionRepository.save(productOption);
+                }
+
                 orderService.save(order);
             }
 
@@ -132,10 +160,9 @@ public class VnPayController {
             e.printStackTrace();
             return ResponseEntity.status(500).body("❌ Lỗi hệ thống: " + e.getMessage());
         }
+
+
     }
-
-
-
 }
 
 
