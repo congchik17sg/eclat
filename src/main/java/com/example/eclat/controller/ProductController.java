@@ -221,26 +221,27 @@ public class ProductController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseObject> updateProduct(@RequestBody Product newProduct, @PathVariable Long id) {
+    public ResponseEntity<ResponseObject> updateProduct(@PathVariable Long id, @RequestBody ProductRequest request) {
         return productRepository.findById(id)
                 .map(product -> {
-                    product.setProductName(newProduct.getProductName());
-                    product.setDescription(newProduct.getDescription());
-                    product.setUsageInstruct(newProduct.getUsageInstruct());
-                    product.setOriginCountry(newProduct.getOriginCountry());
-                    product.setTag(newProduct.getTag());
-                    product.setBrand(newProduct.getBrand());
-                    product.setSkinType(newProduct.getSkinType());
-                    product.setAttribute(newProduct.getAttribute());
-                    product.setUpdateAt(LocalDateTime.now()); // Cập nhật thời gian sửa đổi
+                    product.setProductName(request.getProductName());
+                    product.setDescription(request.getDescription());
+                    product.setUsageInstruct(request.getUsageInstruct());
+                    product.setOriginCountry(request.getOriginCountry());
+                    product.setAttribute(request.getAttribute());
+                    product.setUpdateAt(LocalDateTime.now());
+
+                    product.setTag(tagRepository.findById(request.getTagId()).orElse(null));
+                    product.setBrand(brandRepository.findById(request.getBrandId()).orElse(null));
+                    product.setSkinType(skinTypeRepository.findById(request.getSkinTypeId()).orElse(null));
+
                     productRepository.save(product);
-                    return ResponseEntity.status(HttpStatus.OK).body(
-                            new ResponseObject("ok", "Cập nhật sản phẩm thành công", product)
-                    );
-                }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                        new ResponseObject("failed", "Không tìm thấy sản phẩm với ID: " + id, "")
-                ));
+                    return ResponseEntity.ok(new ResponseObject("ok", "Cập nhật sản phẩm thành công", product));
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseObject("failed", "Không tìm thấy sản phẩm với ID: " + id, "")));
     }
+
     @PatchMapping("/{id}/status")
     public ResponseEntity<ResponseObject> updateProductStatus(@PathVariable Long id, @RequestParam Boolean status) {
         Optional<Product> foundProduct = productRepository.findById(id);
