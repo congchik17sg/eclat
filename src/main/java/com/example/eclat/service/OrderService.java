@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,4 +82,13 @@ public class OrderService {
         // 6. Chuyển đổi sang Response và trả về
         return orderMapper.toResponse(order);
     }
+
+    public Optional<Order> getOrderById(Long orderId) {
+        return orderRepository.findById(orderId);
+    }
+
+    public void save(Order order) {
+        orderRepository.save(order);
+    }
+
 }
