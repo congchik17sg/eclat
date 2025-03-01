@@ -22,24 +22,28 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+     Order order;
 
-    private BigDecimal amount;  // Số tiền thanh toán
+     BigDecimal amount;  // Số tiền thanh toán
 
-    private String transactionStatus;  // Trạng thái thanh toán (Success, Failed, Pending)
+     String transactionStatus;  // Trạng thái thanh toán (Success, Failed, Pending)
 
-    private String paymentMethod;  // Phương thức thanh toán (VNPAY)
+     String paymentMethod;  // Phương thức thanh toán (VNPAY)
 
-    private String vnpTxnRef;  // Mã giao dịch VNPAY
+     String vnpTxnRef;  // Mã giao dịch VNPAY
 
-    private String vnpResponseCode;  // Mã phản hồi từ VNPAY
+     String vnpResponseCode;  // Mã phản hồi từ VNPAY
 
-    private String vnpSecureHash;  // Chữ ký bảo mật VNPAY
+     String vnpSecureHash;  // Chữ ký bảo mật VNPAY
 
-    private LocalDateTime createAt;
+     LocalDateTime createAt;
+
+    LocalDateTime expireAt;
+
 
     @PrePersist
     protected void onCreate() {
         createAt = LocalDateTime.now();
+        expireAt = createAt.plusMinutes(15); // ✅ Hết hạn sau 15 phút
     }
 }

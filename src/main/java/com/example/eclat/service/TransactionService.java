@@ -1,16 +1,21 @@
 package com.example.eclat.service;
 
 import com.example.eclat.entities.Order;
+import com.example.eclat.entities.OrderDetail;
+import com.example.eclat.entities.ProductOption;
 import com.example.eclat.entities.Transaction;
+import com.example.eclat.repository.OptionRepository;
 import com.example.eclat.repository.OrderRepository;
 import com.example.eclat.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,6 +26,9 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
 
+    @Autowired
+    private OptionRepository productOptionRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
     @Autowired
@@ -28,45 +36,50 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
         this.orderRepository = orderRepository;
     }
-    public Transaction saveTransaction(Map<String, String> vnpayResponse) {
-        String txnRef = vnpayResponse.get("vnp_TxnRef");
-        String vnpResponseCode = vnpayResponse.get("vnp_ResponseCode");
-        String transactionStatus = vnpayResponse.get("vnp_TransactionStatus");
 
-        try {
-            // Lấy order từ txnRef (txnRef chính là orderId)
-            Long orderId = Long.parseLong(txnRef);
-            Order order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> new RuntimeException("Order not found for txnRef: " + txnRef));
+    @Scheduled(fixedRate = 60000) // ✅ Chạy mỗi phút
+    public void cancelExpiredTransactions() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Transaction> expiredTransactions = transactionRepository.findByTransactionStatusAndExpireAtBefore("PENDING", now);
 
-            // Tạo transaction mới
-            Transaction transaction = Transaction.builder()
-                    .order(order)
-                    .amount(new BigDecimal(vnpayResponse.get("vnp_Amount")).divide(BigDecimal.valueOf(100))) // Chuyển về đúng giá trị
-                    .transactionStatus(transactionStatus)
-                    .paymentMethod("VNPAY")
-                    .vnpTxnRef(txnRef)
-                    .vnpResponseCode(vnpResponseCode)
-                    .vnpSecureHash(vnpayResponse.get("vnp_SecureHash"))
-                    .createAt(LocalDateTime.now())
-                    .build();
-
+        for (Transaction transaction : expiredTransactions) {
+            transaction.setTransactionStatus("CANCELED");
             transactionRepository.save(transaction);
-            logger.info("Saved transaction for Order ID: {}", orderId);
-
-            // Nếu thanh toán thành công, cập nhật trạng thái đơn hàng
-            if ("00".equals(transactionStatus)) {
-                order.setStatus("PAID");
-                orderRepository.save(order);
-                logger.info("Updated order status to PAID for Order ID: {}", orderId);
-            }
-
-            return transaction;
-        } catch (Exception e) {
-            logger.error("Error saving transaction for txnRef: " + txnRef, e);
-            throw new RuntimeException("Transaction processing failed", e);
+            System.out.println("⚠️ Giao dịch " + transaction.getVnpTxnRef() + " đã bị hủy do quá thời gian!");
         }
     }
+
+    public void updateTransactionStatus(String vnpTxnRef, String status, String vnpResponseCode) {
+        Optional<Transaction> transactionOpt = transactionRepository.findByVnpTxnRef(vnpTxnRef);
+        if (transactionOpt.isEmpty()) {
+            throw new IllegalStateException("Giao dịch không tồn tại!");
+        }
+
+        Transaction transaction = transactionOpt.get();
+        Order order = transaction.getOrder();
+
+        transaction.setTransactionStatus(status);
+        transaction.setVnpResponseCode(vnpResponseCode);
+
+        if ("SUCCESS".equals(status)) {
+            order.setStatus("PAID");
+
+            // 🔹 Giảm số lượng sản phẩm trong ProductOption
+            for (OrderDetail orderDetail : order.getOrderDetails()) {
+                ProductOption productOption = orderDetail.getProductOption();
+                int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
+                if (newQuantity < 0) {
+                    throw new IllegalStateException("Không đủ hàng trong kho!");
+                }
+                productOption.setQuantity(newQuantity);
+                productOptionRepository.save(productOption);
+            }
+        }
+
+        orderRepository.save(order);
+        transactionRepository.save(transaction);
+    }
+
 
 
 }
