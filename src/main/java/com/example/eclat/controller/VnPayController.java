@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -106,7 +107,7 @@ public class VnPayController {
 
 
     @GetMapping("/vnpay-return")
-    public ResponseEntity<?> handleReturnUrl(HttpServletRequest request) {
+    public ResponseEntity<?> handleReturnUrl(HttpServletRequest request, HttpServletResponse response) {
         try {
             // 🔹 Tạo bản sao Mutable của request.getParameterMap()
             Map<String, String[]> params = new HashMap<>(request.getParameterMap());
@@ -117,14 +118,16 @@ public class VnPayController {
             // 🔹 Xác thực chữ ký VNPAY
             boolean isValid = vnPayService.validateSignature(params);
             if (!isValid) {
-                return ResponseEntity.badRequest().body("❌ Xác thực chữ ký không hợp lệ!");
-            }
+            response.sendRedirect("http://localhost:5173/payment-failed");
+            return ResponseEntity.badRequest().body("Invalid signature");
+        }
 
             // 🔹 Lấy giao dịch từ DB
             Optional<Transaction> transactionOpt = transactionRepository.findByVnpTxnRef(vnpTxnRef);
             if (transactionOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Không tìm thấy giao dịch!");
-            }
+            response.sendRedirect("http://localhost:5173/payment-not-found");
+            return ResponseEntity.badRequest().body("Transaction not found");
+        }
 
             Transaction transaction = transactionOpt.get();
             Order order = transaction.getOrder();
@@ -143,8 +146,9 @@ public class VnPayController {
                     ProductOption productOption = orderDetail.getProductOption();
                     int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
                     if (newQuantity < 0) {
-                        return ResponseEntity.badRequest().body("❌ Không đủ hàng trong kho!");
-                    }
+                    response.sendRedirect("http://localhost:5173/payment-failed");
+                    return ResponseEntity.badRequest().body("Insufficient stock");
+                }
                     productOption.setQuantity(newQuantity);
                     productOptionRepository.save(productOption);
                 }
@@ -155,16 +159,17 @@ public class VnPayController {
             // 🔹 Lưu transaction vào DB
             transactionRepository.save(transaction);
 
-            return ResponseEntity.ok("✅ Thanh toán " + status);
+            response.sendRedirect("http://localhost:5173/payment-success?orderId=" + order.getOrderId());
+        return ResponseEntity.ok("Payment processed successfully");
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("❌ Lỗi hệ thống: " + e.getMessage());
-        }
-
-
+        e.printStackTrace();
+        try {
+            response.sendRedirect("http://localhost:5173/payment-error");
+        } catch (Exception ignored) {}
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
     }
 }
-
+}
 
 
 
