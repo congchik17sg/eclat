@@ -17,4 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Optional<Transaction> findByOrder(Order order);
 
     List<Transaction> findByTransactionStatusAndExpireAtBefore(String status, LocalDateTime time);
+
+    List<Transaction> findByOrder_User_Id(String userId);
+
 }

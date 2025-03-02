@@ -4,6 +4,7 @@ import com.example.eclat.entities.Order;
 import com.example.eclat.entities.OrderDetail;
 import com.example.eclat.entities.ProductOption;
 import com.example.eclat.entities.Transaction;
+import com.example.eclat.model.response.TransactionResponse;
 import com.example.eclat.repository.OptionRepository;
 import com.example.eclat.repository.TransactionRepository;
 import com.example.eclat.service.OrderService;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -162,6 +164,24 @@ public class VnPayController {
         }
 
 
+    }
+
+
+    @GetMapping
+    public ResponseEntity<List<TransactionResponse>> getAllTransactions() {
+        return ResponseEntity.ok(transactionService.getAllTransactions());
+    }
+
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<TransactionResponse> getTransactionById(@PathVariable Long transactionId) {
+        Optional<TransactionResponse> transaction = transactionService.getTransactionById(transactionId);
+        return transaction.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<TransactionResponse>> getTransactionsByUserId(@PathVariable String userId) {
+        return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
     }
 }
 

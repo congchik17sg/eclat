@@ -19,11 +19,7 @@ public class OrderDetailResponse {
 
 
     Long orderDetailId;
-    Order order;
-    ProductOption productOption;  // Liên kết với bảng ProductOption
-    LocalDateTime orderDate;  // Ngày đặt hàng
-    int quantity;  // Số lượng sản phẩm
-    BigDecimal price;  // Giá của từng sản phẩm
+    Integer quantity;
+    BigDecimal price;
     Long optionId;
-
 }
