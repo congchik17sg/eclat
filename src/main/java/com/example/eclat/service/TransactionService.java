@@ -4,6 +4,9 @@ import com.example.eclat.entities.Order;
 import com.example.eclat.entities.OrderDetail;
 import com.example.eclat.entities.ProductOption;
 import com.example.eclat.entities.Transaction;
+import com.example.eclat.model.response.OrderDetailResponse;
+import com.example.eclat.model.response.OrderResponse;
+import com.example.eclat.model.response.TransactionResponse;
 import com.example.eclat.repository.OptionRepository;
 import com.example.eclat.repository.OrderRepository;
 import com.example.eclat.repository.TransactionRepository;
@@ -16,9 +19,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -49,37 +51,53 @@ public class TransactionService {
         }
     }
 
-    public void updateTransactionStatus(String vnpTxnRef, String status, String vnpResponseCode) {
-        Optional<Transaction> transactionOpt = transactionRepository.findByVnpTxnRef(vnpTxnRef);
-        if (transactionOpt.isEmpty()) {
-            throw new IllegalStateException("Giao dịch không tồn tại!");
-        }
-
-        Transaction transaction = transactionOpt.get();
-        Order order = transaction.getOrder();
-
-        transaction.setTransactionStatus(status);
-        transaction.setVnpResponseCode(vnpResponseCode);
-
-        if ("SUCCESS".equals(status)) {
-            order.setStatus("PAID");
-
-            // 🔹 Giảm số lượng sản phẩm trong ProductOption
-            for (OrderDetail orderDetail : order.getOrderDetails()) {
-                ProductOption productOption = orderDetail.getProductOption();
-                int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
-                if (newQuantity < 0) {
-                    throw new IllegalStateException("Không đủ hàng trong kho!");
-                }
-                productOption.setQuantity(newQuantity);
-                productOptionRepository.save(productOption);
-            }
-        }
-
-        orderRepository.save(order);
-        transactionRepository.save(transaction);
+    public List<TransactionResponse> getAllTransactions() {
+        return transactionRepository.findAll().stream()
+                .map(this::mapToTransactionResponse)
+                .collect(Collectors.toList());
     }
 
+    public Optional<TransactionResponse> getTransactionById(Long transactionId) {
+        return transactionRepository.findById(transactionId).map(this::mapToTransactionResponse);
+    }
 
+    public List<TransactionResponse> getTransactionsByUserId(String userId) {
+        return transactionRepository.findByOrder_User_Id(userId).stream()
+                .map(this::mapToTransactionResponse)
+                .collect(Collectors.toList());
+    }
+
+    private TransactionResponse mapToTransactionResponse(Transaction transaction) {
+        return TransactionResponse.builder()
+                .transactionId(transaction.getTransactionId())
+                .order(mapToOrderResponse(transaction.getOrder()))
+                .amount(transaction.getAmount()) // Đổi kiểu dữ liệu thành BigDecimal
+                .status(transaction.getTransactionStatus())
+                .createAt(transaction.getCreateAt())
+                .updateAt(transaction.getExpireAt()) // Đổi sang getUpdatedAt() nếu cần
+                .build();
+    }
+
+    private OrderResponse mapToOrderResponse(Order order) {
+        return OrderResponse.builder()
+                .orderId(order.getOrderId())
+                .userId(order.getUser().getId())
+                .totalPrices(order.getTotalPrices())
+                .address(order.getAddress())
+                .status(order.getStatus())
+                .orderDetails(order.getOrderDetails().stream()
+                        .map(this::mapToOrderDetailResponse)
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    private OrderDetailResponse mapToOrderDetailResponse(OrderDetail orderDetail) {
+        return OrderDetailResponse.builder()
+                .orderDetailId(orderDetail.getOrderDetailId())
+                .quantity(orderDetail.getQuantity())
+                .price(orderDetail.getPrice())
+                .optionId(orderDetail.getProductOption() != null ? orderDetail.getProductOption().getOptionId() : null)
+                .build();
+    }
 
 }
