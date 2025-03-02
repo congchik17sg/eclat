@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class OptionRequest {
-    @NotNull
-    private Long productId;
+   // @NotNull
+   // private Long productId;
 
     @NotNull
     private String optionValue;

@@ -42,10 +42,9 @@ public class OptionController {
         );
     }
 
-    @PostMapping("/insert")
-    public ResponseEntity<ResponseObject> insertOption(@RequestBody @Valid OptionRequest requestDTO) {
-        Optional<Product> product = productRepository.findById(requestDTO.getProductId());
-
+    @PostMapping("/insert/{id}")
+    public ResponseEntity<ResponseObject> insertOption(@PathVariable("productId") Long id , @RequestBody @Valid OptionRequest requestDTO) {
+        Optional<Product> product = productRepository.findById(id);
         if (product.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                     new ResponseObject("failed", "Invalid Product ID", "")
@@ -65,21 +64,20 @@ public class OptionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseObject> updateOption(@RequestBody ProductOption newOption, @PathVariable Long id) {
-        ProductOption updatedOption = optionRepository.findById(id)
+    public ResponseEntity<ResponseObject> updateOption(@PathVariable Long id, @RequestBody OptionRequest request) {
+        return optionRepository.findById(id)
                 .map(option -> {
-                    option.setOptionValue(newOption.getOptionValue());
-                    option.setQuantity(newOption.getQuantity());
-                    option.setOptionPrice(newOption.getOptionPrice());
-                    option.setDiscPrice(newOption.getDiscPrice());
-                    return optionRepository.save(option);
-                }).orElseGet(() -> {
-                    newOption.setOptionId(id);
-                    return optionRepository.save(newOption);
-                });
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new ResponseObject("OK", "Option updated successfully", updatedOption)
-        );
+                    option.setOptionValue(request.getOptionValue());
+                    option.setQuantity(request.getQuantity());
+                    option.setOptionPrice(request.getOptionPrice());
+                    option.setDiscPrice(request.getDiscPrice());
+                    option.setUpdateAt(LocalDateTime.now());
+
+                    optionRepository.save(option);
+                    return ResponseEntity.ok(new ResponseObject("OK", "Cập nhật option thành công", option));
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseObject("FAILED", "Không tìm thấy option với ID: " + id, "")));
     }
 
     @DeleteMapping("/{id}")
