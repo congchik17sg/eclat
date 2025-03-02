@@ -147,9 +147,10 @@ public class VnPayController {
                 for (OrderDetail orderDetail : order.getOrderDetails()) {
                     ProductOption productOption = orderDetail.getProductOption();
                     int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
+
                     if (newQuantity < 0) {
                     response.sendRedirect("http://localhost:5173/payment-failed");
-                    return ResponseEntity.badRequest().body("Insufficient stock");
+                    return null;
                 }
                     productOption.setQuantity(newQuantity);
                     productOptionRepository.save(productOption);
@@ -162,7 +163,7 @@ public class VnPayController {
             transactionRepository.save(transaction);
 
             response.sendRedirect("http://localhost:5173/payment-success?orderId=" + order.getOrderId());
-        return ResponseEntity.ok("Payment processed successfully");
+            return null;
         } catch (Exception e) {
         e.printStackTrace();
         try {
@@ -170,7 +171,7 @@ public class VnPayController {
         } catch (Exception ignored) {}
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
     }
-
+    }
 
     @GetMapping
     public ResponseEntity<List<TransactionResponse>> getAllTransactions() {
@@ -189,7 +190,7 @@ public class VnPayController {
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
     }
 }
-}
+
 
 
 
