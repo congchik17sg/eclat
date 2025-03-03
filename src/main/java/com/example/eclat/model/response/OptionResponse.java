@@ -15,15 +15,23 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OptionResponse {
-     Long optionId;
-     String optionValue;
-     int quantity;
-     BigDecimal optionPrice;
-     BigDecimal discPrice;
+    Long optionId;
+    String optionValue;
+    int quantity;
+    BigDecimal optionPrice;
+    BigDecimal discPrice;
+
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     LocalDateTime createAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     LocalDateTime updateAt;
     List<String> optionImages;
+
+    ProductResponse product;
+
+
+    public <R> OptionResponse(Long optionId, String optionValue, int quantity, BigDecimal optionPrice, BigDecimal discPrice, LocalDateTime createAt, LocalDateTime updateAt, R collect) {
+    }
 }

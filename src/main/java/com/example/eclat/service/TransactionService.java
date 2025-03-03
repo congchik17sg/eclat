@@ -3,11 +3,13 @@ package com.example.eclat.service;
 import com.example.eclat.entities.Order;
 import com.example.eclat.entities.OrderDetail;
 import com.example.eclat.entities.ProductOption;
+import com.example.eclat.entities.Product;
 import com.example.eclat.entities.Transaction;
 import com.example.eclat.model.response.OptionResponse;
 import com.example.eclat.model.response.OrderDetailResponse;
 import com.example.eclat.model.response.OrderResponse;
 import com.example.eclat.model.response.TransactionResponse;
+import com.example.eclat.model.response.ProductResponse;
 import com.example.eclat.repository.OptionRepository;
 import com.example.eclat.repository.OrderRepository;
 import com.example.eclat.repository.TransactionRepository;
@@ -40,7 +42,7 @@ public class TransactionService {
         this.orderRepository = orderRepository;
     }
 
-    @Scheduled(fixedRate = 60000) // ✅ Chạy mỗi phút
+    @Scheduled(fixedRate = 60000)
     public void cancelExpiredTransactions() {
         LocalDateTime now = LocalDateTime.now();
         List<Transaction> expiredTransactions = transactionRepository.findByTransactionStatusAndExpireAtBefore("PENDING", now);
@@ -72,10 +74,10 @@ public class TransactionService {
         return TransactionResponse.builder()
                 .transactionId(transaction.getTransactionId())
                 .order(mapToOrderResponse(transaction.getOrder()))
-                .amount(transaction.getAmount()) // Đổi kiểu dữ liệu thành BigDecimal
+                .amount(transaction.getAmount())
                 .status(transaction.getTransactionStatus())
                 .createAt(transaction.getCreateAt())
-                .updateAt(transaction.getExpireAt()) // Đổi sang getUpdatedAt() nếu cần
+                .updateAt(transaction.getExpireAt())
                 .build();
     }
 
@@ -92,16 +94,6 @@ public class TransactionService {
                 .build();
     }
 
-//    private OrderDetailResponse mapToOrderDetailResponse(OrderDetail orderDetail) {
-//        return OrderDetailResponse.builder()
-//                .orderDetailId(orderDetail.getOrderDetailId())
-//                .quantity(orderDetail.getQuantity())
-//                .price(orderDetail.getPrice())
-//                .optionId(orderDetail.getProductOption() != null ? orderDetail.getProductOption().getOptionId() : null)
-//                .build();
-//    }
-
-
     private OrderDetailResponse mapToOrderDetailResponse(OrderDetail orderDetail) {
         return OrderDetailResponse.builder()
                 .orderDetailId(orderDetail.getOrderDetailId())
@@ -116,15 +108,40 @@ public class TransactionService {
     private OptionResponse mapToOptionResponse(ProductOption productOption) {
         return OptionResponse.builder()
                 .optionId(productOption.getOptionId())
-                .optionValue(productOption.getOptionValue()) // Lấy giá trị của option
-                .quantity(productOption.getQuantity()) // Số lượng option
-                .optionPrice(productOption.getOptionPrice()) // Giá gốc của option
-                .discPrice(productOption.getDiscPrice()) // Giá sau khi giảm
-                .createAt(productOption.getCreateAt()) // Ngày tạo
-                .updateAt(productOption.getUpdateAt()) // Ngày cập nhật
-                .optionImages(productOption.getOptionImages()) // Danh sách ảnh
+                .optionValue(productOption.getOptionValue())
+                .quantity(productOption.getQuantity())
+                .optionPrice(productOption.getOptionPrice())
+                .discPrice(productOption.getDiscPrice())
+                .createAt(productOption.getCreateAt())
+                .updateAt(productOption.getUpdateAt())
+                .optionImages(productOption.getOptionImages())
+                .product(mapToProductResponse(productOption.getProduct()))
                 .build();
     }
 
+    private ProductResponse mapToProductResponse(Product product) {
+        if (product == null) {
+            return null;
+        }
+        return ProductResponse.builder()
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .description(product.getDescription())
+                .usageInstruct(product.getUsageInstruct())
+                .originCountry(product.getOriginCountry())
+                .createAt(product.getCreateAt())
+                .updateAt(product.getUpdateAt())
+                .status(product.getStatus())
+                .tag(product.getTag())
+                .brand(product.getBrand())
+                .skinType(product.getSkinType())
+                .images(product.getImages() != null
+                        ? product.getImages().stream()
+                        .map(image -> image.getImageUrl())  // Đảm bảo image không null
+                        .collect(Collectors.toList())
+                        : null)
+                .attribute(product.getAttribute())
+                .build();
+    }
 
 }

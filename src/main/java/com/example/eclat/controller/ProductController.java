@@ -73,9 +73,11 @@ public class ProductController {
                             option.getDiscPrice(),
                             option.getCreateAt(),
                             option.getUpdateAt(),
-                            option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList())
+                            option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()),
+                            null // Hoặc truyền `mapToProductResponse(product)`
                     ))
                     .collect(Collectors.toList());
+
 
             List<FeedbackResponse> feedbackResponses = product.getFeedbacks().stream()
                     .map(feedback -> new FeedbackResponse(
