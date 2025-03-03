@@ -10,6 +10,8 @@ import com.example.eclat.model.response.ProductResponse;
 import com.example.eclat.model.response.ResponseObject;
 import com.example.eclat.repository.*;
 import com.example.eclat.service.CloudinaryService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,7 +137,8 @@ public class ProductController {
                         option.getDiscPrice(),
                         option.getCreateAt(),
                         option.getUpdateAt(),
-                        option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList())
+                        option.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()),
+                        null
                 ))
                 .collect(Collectors.toList());
 
