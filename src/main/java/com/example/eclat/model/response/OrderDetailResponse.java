@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,4 +23,6 @@ public class OrderDetailResponse {
     Integer quantity;
     BigDecimal price;
     Long optionId;
+    List<OptionResponse> optionResponse;
+
 }

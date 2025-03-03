@@ -4,6 +4,7 @@ import com.example.eclat.entities.Order;
 import com.example.eclat.entities.OrderDetail;
 import com.example.eclat.entities.ProductOption;
 import com.example.eclat.entities.Transaction;
+import com.example.eclat.model.response.OptionResponse;
 import com.example.eclat.model.response.OrderDetailResponse;
 import com.example.eclat.model.response.OrderResponse;
 import com.example.eclat.model.response.TransactionResponse;
@@ -91,13 +92,39 @@ public class TransactionService {
                 .build();
     }
 
+//    private OrderDetailResponse mapToOrderDetailResponse(OrderDetail orderDetail) {
+//        return OrderDetailResponse.builder()
+//                .orderDetailId(orderDetail.getOrderDetailId())
+//                .quantity(orderDetail.getQuantity())
+//                .price(orderDetail.getPrice())
+//                .optionId(orderDetail.getProductOption() != null ? orderDetail.getProductOption().getOptionId() : null)
+//                .build();
+//    }
+
+
     private OrderDetailResponse mapToOrderDetailResponse(OrderDetail orderDetail) {
         return OrderDetailResponse.builder()
                 .orderDetailId(orderDetail.getOrderDetailId())
                 .quantity(orderDetail.getQuantity())
                 .price(orderDetail.getPrice())
                 .optionId(orderDetail.getProductOption() != null ? orderDetail.getProductOption().getOptionId() : null)
+                .optionResponse(orderDetail.getProductOption() != null ?
+                        List.of(mapToOptionResponse(orderDetail.getProductOption())) : null)
                 .build();
     }
+
+    private OptionResponse mapToOptionResponse(ProductOption productOption) {
+        return OptionResponse.builder()
+                .optionId(productOption.getOptionId())
+                .optionValue(productOption.getOptionValue()) // Lấy giá trị của option
+                .quantity(productOption.getQuantity()) // Số lượng option
+                .optionPrice(productOption.getOptionPrice()) // Giá gốc của option
+                .discPrice(productOption.getDiscPrice()) // Giá sau khi giảm
+                .createAt(productOption.getCreateAt()) // Ngày tạo
+                .updateAt(productOption.getUpdateAt()) // Ngày cập nhật
+                .optionImages(productOption.getOptionImages()) // Danh sách ảnh
+                .build();
+    }
+
 
 }

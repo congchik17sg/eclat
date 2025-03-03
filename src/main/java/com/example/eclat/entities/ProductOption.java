@@ -41,4 +41,12 @@ public class ProductOption {
         @OneToMany(mappedBy = "option", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonManagedReference("option-image")
         private List<Image> images = new ArrayList<>();
+
+
+        public List<String> getOptionImages() {
+                return images.stream()
+                        .map(Image::getImageUrl) // Giả sử Image có phương thức getImageUrl()
+                        .toList();
+        }
+
 }
