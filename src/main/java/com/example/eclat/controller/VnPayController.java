@@ -13,6 +13,8 @@ import com.example.eclat.service.VnPayService;
 import com.example.eclat.utils.VnpayUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,16 +123,16 @@ public class VnPayController {
             // 🔹 Xác thực chữ ký VNPAY
             boolean isValid = vnPayService.validateSignature(params);
             if (!isValid) {
-            response.sendRedirect("http://localhost:5173/payment-failed");
-            return ResponseEntity.badRequest().body("Invalid signature");
-        }
+                response.sendRedirect("http://localhost:5173/payment-failed");
+                return ResponseEntity.badRequest().body("Invalid signature");
+            }
 
             // 🔹 Lấy giao dịch từ DB
             Optional<Transaction> transactionOpt = transactionRepository.findByVnpTxnRef(vnpTxnRef);
             if (transactionOpt.isEmpty()) {
-            response.sendRedirect("http://localhost:5173/payment-not-found");
-            return ResponseEntity.badRequest().body("Transaction not found");
-        }
+                response.sendRedirect("http://localhost:5173/payment-not-found");
+                return ResponseEntity.badRequest().body("Transaction not found");
+            }
 
             Transaction transaction = transactionOpt.get();
             Order order = transaction.getOrder();
@@ -166,14 +168,13 @@ public class VnPayController {
             response.sendRedirect("http://localhost:5173/payment-success?orderId=" + order.getOrderId());
             return null;
         } catch (Exception e) {
-        e.printStackTrace();
-        try {
+          e.printStackTrace();
+          try {
             response.sendRedirect("http://localhost:5173/payment-error");
-        } catch (Exception ignored) {}
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
+          } catch (Exception ignored) {}
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
+        }
     }
-    }
-
 
     @GetMapping
     public ResponseEntity<List<TransactionResponse>> getAllTransactions() {

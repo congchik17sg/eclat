@@ -32,6 +32,6 @@ public class OptionResponse {
     ProductResponse product;
 
 
-    public <R> OptionResponse(Long optionId, String optionValue, int quantity, BigDecimal optionPrice, BigDecimal discPrice, LocalDateTime createAt, LocalDateTime updateAt, R collect) {
-    }
+    // public <R> OptionResponse(Long optionId, String optionValue, int quantity, BigDecimal optionPrice, BigDecimal discPrice, LocalDateTime createAt, LocalDateTime updateAt, R collect) {
+    // }
 }
