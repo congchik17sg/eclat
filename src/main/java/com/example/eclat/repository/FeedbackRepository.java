@@ -12,4 +12,6 @@ public interface FeedbackRepository extends JpaRepository<FeedBack, Long> {
 
     List<FeedBack> findByUserId(String userId); // Truy vấn theo userId
 
+
+
 }

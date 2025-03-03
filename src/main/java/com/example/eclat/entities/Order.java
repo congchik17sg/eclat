@@ -23,27 +23,31 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderId;
+     Long orderId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;  // Liên kết với bảng User
+     User user;  // Liên kết với bảng User
 
-    private BigDecimal totalPrices;  // Tổng tiền của đơn hàng
+     BigDecimal totalPrices;  // Tổng tiền của đơn hàng
 
-    private String address;  // Địa chỉ giao hàng
+     String address;  // Địa chỉ giao hàng
 
-    private String status;  // Trạng thái đơn hàng (VD: PENDING, SHIPPED, COMPLETED)
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    private LocalDateTime createAt;
+     String status;  // Trạng thái đơn hàng (VD: PENDING, SHIPPED, COMPLETED)
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    private LocalDateTime updateAt;
+     LocalDateTime createAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+     LocalDateTime updateAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<OrderDetail> orderDetails = new ArrayList<>();
+     List<OrderDetail> orderDetails = new ArrayList<>();
+
+    String paymentMethod;
+
+
 
     @PrePersist
     protected void onCreate() {

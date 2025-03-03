@@ -17,7 +17,7 @@ public class FeedbackRequest {
     String text;
     int rating;
     String userId;
-    Long productId;
+    Long orderDetailId;
     LocalDate create_at;
     LocalDate update_at;
 

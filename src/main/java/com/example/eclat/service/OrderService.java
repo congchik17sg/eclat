@@ -51,14 +51,13 @@ public class OrderService {
                 .totalPrices(request.getTotalPrices())
                 .address(request.getAddress())
                 .status(request.getStatus())
+                .paymentMethod(request.getPaymentMethod()) // ✅ Thêm paymentMethod
                 .createAt(LocalDateTime.now())
                 .updateAt(LocalDateTime.now())
                 .build();
 
         // 💾 3. Lưu order vào database trước
         order = orderRepository.save(order);
-        log.debug("Order ID after save: {}", order.getOrderId()); // ✅ Kiểm tra orderId
-
 
         // 4. Thêm danh sách OrderDetail vào đơn hàng
         Order finalOrder = order;
@@ -68,7 +67,7 @@ public class OrderService {
                             .orElseThrow(() -> new RuntimeException("Option not found!"));
 
                     return OrderDetail.builder()
-                            .order(finalOrder) // ✅ Đảm bảo order đã được lưu
+                            .order(finalOrder)
                             .productOption(option)
                             .quantity(detailRequest.getQuantity())
                             .price(detailRequest.getPrice())
@@ -80,7 +79,16 @@ public class OrderService {
         orderDetailRepository.saveAll(orderDetails);
 
         // 6. Chuyển đổi sang Response và trả về
-        return orderMapper.toResponse(order);
+        return OrderResponse.builder()
+                .orderId(order.getOrderId())
+                .totalPrices(order.getTotalPrices())
+                .address(order.getAddress())
+                .status(order.getStatus())
+                .paymentMethod(order.getPaymentMethod()) // ✅ Thêm paymentMethod vào response
+                .createAt(order.getCreateAt())
+                .updateAt(order.getUpdateAt())
+                .orderDetails(orderDetails.stream().map(orderDetailMapper::toResponse).collect(Collectors.toList()))
+                .build();
     }
 
     public Optional<Order> getOrderById(Long orderId) {

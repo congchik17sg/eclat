@@ -1,20 +1,17 @@
 package com.example.eclat.service;
 
 import com.example.eclat.entities.FeedBack;
-import com.example.eclat.entities.Product;
+import com.example.eclat.entities.OrderDetail;
 import com.example.eclat.entities.User;
 import com.example.eclat.exception.AppException;
 import com.example.eclat.exception.ErrorCode;
 import com.example.eclat.model.request.quiz.FeedbackRequest;
 import com.example.eclat.model.response.quiz.FeedbackResponse;
 import com.example.eclat.repository.FeedbackRepository;
-import com.example.eclat.repository.ProductRepository;
+import com.example.eclat.repository.OrderDetailRepository;
 import com.example.eclat.repository.UserRepository;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,21 +20,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@NoArgsConstructor
-
+@RequiredArgsConstructor
 public class FeedbackService {
 
-
-    FeedbackRepository feedbackRepository;
-    ProductRepository productRepository;
-    UserRepository userRepository;
-
-    @Autowired
-    public FeedbackService(FeedbackRepository feedbackRepository, ProductRepository productRepository, UserRepository userRepository) {
-        this.feedbackRepository = feedbackRepository;
-        this.productRepository = productRepository;
-        this.userRepository = userRepository;
-    }
+    private final FeedbackRepository feedbackRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final UserRepository userRepository;
 
     public FeedbackResponse createFeedback(FeedbackRequest request) {
 
@@ -45,16 +33,16 @@ public class FeedbackService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        // Kiểm tra xem sản phẩm có tồn tại không
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+        // Kiểm tra xem OrderDetail có tồn tại không
+        OrderDetail orderDetail = orderDetailRepository.findById(request.getOrderDetailId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy OrderDetail"));
 
         // Tạo đối tượng FeedBack mới
         FeedBack feedBack = FeedBack.builder()
                 .text(request.getText())
                 .rating(request.getRating())
                 .user(user)
-                .product(product)
+                .orderDetail(orderDetail)
                 .create_at(LocalDate.now()) // Gán ngày tạo
                 .update_at(LocalDate.now()) // Gán ngày cập nhật
                 .build();
@@ -67,31 +55,31 @@ public class FeedbackService {
                 .text(savedFeedBack.getText())
                 .rating(savedFeedBack.getRating())
                 .username(user.getUsername())
-                .productname(product.getProductName())
+                .orderDetailId(orderDetail.getOrderDetailId())
                 .create_at(savedFeedBack.getCreate_at()) // Gán ngày tạo
                 .update_at(savedFeedBack.getUpdate_at()) // Gán ngày cập nhật
                 .build();
-
-
     }
+
     public List<FeedbackResponse> getAllFeedback() {
         return feedbackRepository.findAll().stream()
                 .map(feedback -> FeedbackResponse.builder()
                         .text(feedback.getText())
                         .rating(feedback.getRating())
                         .username(feedback.getUser().getUsername())
-                        .productname(feedback.getProduct().getProductName())
+                        .orderDetailId(feedback.getOrderDetail().getOrderDetailId())
                         .create_at(feedback.getCreate_at())
                         .update_at(feedback.getUpdate_at())
                         .build())
                 .collect(Collectors.toList());
     }
+
     public List<FeedbackResponse> getFeedbackByUserId(String userId) {
         return feedbackRepository.findByUserId(userId).stream().map(feedback -> FeedbackResponse.builder()
                 .text(feedback.getText())
                 .rating(feedback.getRating())
                 .username(feedback.getUser().getUsername())
-                .productname(feedback.getProduct().getProductName())
+                .orderDetailId(feedback.getOrderDetail().getOrderDetailId())
                 .create_at(feedback.getCreate_at())
                 .update_at(feedback.getUpdate_at())
                 .build()).collect(Collectors.toList());
@@ -111,7 +99,7 @@ public class FeedbackService {
                 .text(updatedFeedback.getText())
                 .rating(updatedFeedback.getRating())
                 .username(updatedFeedback.getUser().getUsername())
-                .productname(updatedFeedback.getProduct().getProductName())
+                .orderDetailId(updatedFeedback.getOrderDetail().getOrderDetailId())
                 .create_at(updatedFeedback.getCreate_at())
                 .update_at(updatedFeedback.getUpdate_at())
                 .build();
@@ -123,7 +111,4 @@ public class FeedbackService {
         }
         feedbackRepository.deleteById(feedbackId);
     }
-
-
-
 }

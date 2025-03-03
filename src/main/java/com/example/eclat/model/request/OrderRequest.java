@@ -17,6 +17,7 @@ public class OrderRequest {
     private BigDecimal totalPrices;
     private String address;
     private String status;
+    String paymentMethod;
     private List<OrderDetailRequest> orderDetails;
 
 

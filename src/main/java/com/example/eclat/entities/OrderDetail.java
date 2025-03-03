@@ -7,6 +7,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -38,11 +40,11 @@ public class OrderDetail {
 
     private BigDecimal price;  // Giá của từng sản phẩm
 
-
+    @OneToMany(mappedBy = "orderDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FeedBack> feedbacks = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
         orderDate = LocalDateTime.now();
     }
-
 }

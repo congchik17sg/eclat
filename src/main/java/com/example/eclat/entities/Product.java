@@ -58,7 +58,5 @@ public class Product {
     @JsonManagedReference("product-option")
     private List<ProductOption> options = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FeedBack> feedbacks = new ArrayList<>();
 
 }
