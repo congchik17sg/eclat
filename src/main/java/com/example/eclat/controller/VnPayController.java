@@ -72,7 +72,7 @@ public class VnPayController {
             }
 
             // Lấy thông tin đơn hàng
-            Optional<Order> orderOpt = orderService.getOrderById(orderId);
+            Optional<Order> orderOpt = orderService.getOrderByIdV2(orderId);
             if (orderOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "❌ Order không tồn tại!"));

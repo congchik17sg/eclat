@@ -1,6 +1,6 @@
 package com.example.eclat.model.response;
 
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -23,8 +23,10 @@ public class OrderResponse {
      String status;
      List<OrderDetailResponse> orderDetails;
      String paymentMethod;
+
+     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
      LocalDateTime createAt;
+
+     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
      LocalDateTime updateAt;
-
-
 }
