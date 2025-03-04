@@ -31,6 +31,18 @@ public class OptionResponse {
 
     ProductResponse product;
 
+    public OptionResponse(Long optionId, String optionValue, int quantity, BigDecimal optionPrice,
+                          BigDecimal discPrice, LocalDateTime createAt, LocalDateTime updateAt, List<String> images) {
+        this.optionId = optionId;
+        this.optionValue = optionValue;
+        this.quantity = quantity;
+        this.optionPrice = optionPrice;
+        this.discPrice = discPrice;
+        this.createAt = createAt;
+        this.updateAt = updateAt;
+
+    }
+
 
     // public <R> OptionResponse(Long optionId, String optionValue, int quantity, BigDecimal optionPrice, BigDecimal discPrice, LocalDateTime createAt, LocalDateTime updateAt, R collect) {
     // }
