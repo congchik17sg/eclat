@@ -40,7 +40,7 @@ public class OptionResponse {
         this.discPrice = discPrice;
         this.createAt = createAt;
         this.updateAt = updateAt;
-
+        this.optionImages = images;
     }
 
 
