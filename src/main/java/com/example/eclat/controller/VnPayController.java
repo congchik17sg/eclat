@@ -4,6 +4,7 @@ import com.example.eclat.entities.Order;
 import com.example.eclat.entities.OrderDetail;
 import com.example.eclat.entities.ProductOption;
 import com.example.eclat.entities.Transaction;
+import com.example.eclat.model.response.OrderResponse;
 import com.example.eclat.model.response.TransactionResponse;
 import com.example.eclat.repository.OptionRepository;
 import com.example.eclat.repository.TransactionRepository;
@@ -191,6 +192,12 @@ public class VnPayController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TransactionResponse>> getTransactionsByUserId(@PathVariable String userId) {
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
+    }
+    @GetMapping("/{transactionId}/order")
+    public ResponseEntity<OrderResponse> getOrderByTransactionId(@PathVariable Long transactionId) {
+        return transactionService.getOrderByTransactionId(transactionId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
 

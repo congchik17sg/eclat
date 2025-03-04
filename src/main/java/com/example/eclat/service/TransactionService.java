@@ -144,4 +144,11 @@ public class TransactionService {
                 .build();
     }
 
+    public Optional<OrderResponse> getOrderByTransactionId(Long transactionId) {
+        return transactionRepository.findById(transactionId)
+                .map(Transaction::getOrder)
+                .map(this::mapToOrderResponse);
+    }
+
+
 }
