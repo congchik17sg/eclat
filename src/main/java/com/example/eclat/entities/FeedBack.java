@@ -1,9 +1,11 @@
 package com.example.eclat.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -30,6 +32,9 @@ public class FeedBack {
 
     int rating;
 
-    LocalDate create_at;
-    LocalDate update_at;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    LocalDateTime create_at;  // Đổi từ LocalDate thành LocalDateTime
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    LocalDateTime update_at;  // Đổi từ LocalDate thành LocalDateTime
 }

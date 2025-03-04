@@ -57,6 +57,13 @@ public class FeedbackController {
                 .result("Feedback deleted successfully")
                 .build();
     }
+    @GetMapping("/product/{productId}")
+    public ApiResponse<List<FeedbackResponse>> getFeedbackByProductId(@PathVariable Long productId) {
+        return ApiResponse.<List<FeedbackResponse>>builder()
+                .result(feedbackService.getFeedbackByProductId(productId))
+                .build();
+    }
+
 
 
 }

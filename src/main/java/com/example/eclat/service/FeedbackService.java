@@ -1,11 +1,13 @@
 package com.example.eclat.service;
 
-import com.example.eclat.entities.FeedBack;
-import com.example.eclat.entities.OrderDetail;
-import com.example.eclat.entities.User;
+import com.example.eclat.entities.*;
 import com.example.eclat.exception.AppException;
 import com.example.eclat.exception.ErrorCode;
 import com.example.eclat.model.request.quiz.FeedbackRequest;
+import com.example.eclat.model.response.OptionResponse;
+import com.example.eclat.model.response.OptionResponseV2;
+import com.example.eclat.model.response.ProductResponse;
+import com.example.eclat.model.response.ProductResponseV2;
 import com.example.eclat.model.response.quiz.FeedbackResponse;
 import com.example.eclat.repository.FeedbackRepository;
 import com.example.eclat.repository.OrderDetailRepository;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,8 +46,8 @@ public class FeedbackService {
                 .rating(request.getRating())
                 .user(user)
                 .orderDetail(orderDetail)
-                .create_at(LocalDate.now()) // Gán ngày tạo
-                .update_at(LocalDate.now()) // Gán ngày cập nhật
+                .create_at(LocalDateTime.now()) // Gán ngày tạo
+                .update_at(LocalDateTime.now()) // Gán ngày cập nhật
                 .build();
 
         // Lưu vào database
@@ -56,7 +59,7 @@ public class FeedbackService {
                 .rating(savedFeedBack.getRating())
                 .username(user.getUsername())
                 .orderDetailId(orderDetail.getOrderDetailId())
-                .create_at(savedFeedBack.getCreate_at()) // Gán ngày tạo
+                .createAt(savedFeedBack.getCreate_at()) // Gán ngày tạo
                 .update_at(savedFeedBack.getUpdate_at()) // Gán ngày cập nhật
                 .build();
     }
@@ -68,7 +71,7 @@ public class FeedbackService {
                         .rating(feedback.getRating())
                         .username(feedback.getUser().getUsername())
                         .orderDetailId(feedback.getOrderDetail().getOrderDetailId())
-                        .create_at(feedback.getCreate_at())
+                        .createAt(feedback.getCreate_at())
                         .update_at(feedback.getUpdate_at())
                         .build())
                 .collect(Collectors.toList());
@@ -80,7 +83,7 @@ public class FeedbackService {
                 .rating(feedback.getRating())
                 .username(feedback.getUser().getUsername())
                 .orderDetailId(feedback.getOrderDetail().getOrderDetailId())
-                .create_at(feedback.getCreate_at())
+                .createAt(feedback.getCreate_at())
                 .update_at(feedback.getUpdate_at())
                 .build()).collect(Collectors.toList());
     }
@@ -91,7 +94,7 @@ public class FeedbackService {
 
         feedback.setText(request.getText());
         feedback.setRating(request.getRating());
-        feedback.setUpdate_at(LocalDate.now());
+        feedback.setUpdate_at(LocalDateTime.now());
 
         FeedBack updatedFeedback = feedbackRepository.save(feedback);
 
@@ -100,7 +103,7 @@ public class FeedbackService {
                 .rating(updatedFeedback.getRating())
                 .username(updatedFeedback.getUser().getUsername())
                 .orderDetailId(updatedFeedback.getOrderDetail().getOrderDetailId())
-                .create_at(updatedFeedback.getCreate_at())
+                .createAt(updatedFeedback.getCreate_at())
                 .update_at(updatedFeedback.getUpdate_at())
                 .build();
     }
@@ -111,4 +114,71 @@ public class FeedbackService {
         }
         feedbackRepository.deleteById(feedbackId);
     }
+
+    public List<FeedbackResponse> getFeedbackByProductId(Long productId) {
+        List<FeedBack> feedbacks = feedbackRepository.findByOrderDetail_ProductOption_Product_ProductId(productId);
+
+        return feedbacks.stream().map(feedback -> {
+            Product product = feedback.getOrderDetail().getProductOption().getProduct();
+            ProductResponseV2 productResponseV2 = mapToProductResponseV2(product);
+
+            return FeedbackResponse.builder()
+                    .feedbackId(feedback.getFeedback_id()) // Sửa lỗi đặt tên
+                    .text(feedback.getText())
+                    .userId(feedback.getUser() != null ? feedback.getUser().getId().toString() : null) // Kiểm tra null tránh lỗi
+                    .username(feedback.getUser().getUsername())
+                    .rating(feedback.getRating())
+                    .createAt(feedback.getCreate_at())
+                    .update_at(feedback.getUpdate_at())
+                    .orderDetailId(feedback.getOrderDetail().getOrderDetailId())
+                    .product(productResponseV2) // Gán product vào response
+                    .build();
+        }).toList();
+    }
+
+    private ProductResponseV2 mapToProductResponseV2(Product product) {
+        ProductResponseV2 productResponse = ProductResponseV2.builder()
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .description(product.getDescription())
+                .usageInstruct(product.getUsageInstruct())
+                .originCountry(product.getOriginCountry())
+                .createAt(product.getCreateAt())
+                .updateAt(product.getUpdateAt())
+                .status(product.getStatus())
+                .tag(product.getTag())
+                .brand(product.getBrand())
+                .skinType(product.getSkinType())
+                .images(product.getImages().stream()
+                        .map(Image::getImageUrl)
+                        .toList())
+                .attribute(product.getAttribute())
+                .build();
+
+        // Chuyển đổi danh sách options
+        List<OptionResponseV2> optionResponses = product.getOptions().stream()
+                .map(option -> new OptionResponseV2(
+                        option.getOptionId(),
+                        option.getOptionValue(),
+                        option.getQuantity(),
+                        option.getOptionPrice(),
+                        option.getDiscPrice(),
+                        option.getCreateAt(),
+                        option.getUpdateAt(),
+                        option.getImages().stream().map(Image::getImageUrl).toList(),
+                        productResponse // Gán ProductResponseV2 vào OptionResponseV2
+                ))
+                .toList();
+
+        productResponse.setOptions(optionResponses);
+
+        return productResponse;
+    }
+
+
+
+
+
+
+
 }

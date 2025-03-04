@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -116,66 +117,9 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found!"));
 
-        // Ánh xạ danh sách OrderDetailResponse
-        List<OrderDetailResponse> orderDetailResponses = order.getOrderDetails().stream()
-                .map(orderDetail -> {
-                    ProductOption productOption = orderDetail.getProductOption();
-
-                    // Ánh xạ ProductResponse
-                    ProductResponse productResponse = null;
-                    if (productOption.getProduct() != null) {
-                        Product product = productOption.getProduct();
-                        productResponse = ProductResponse.builder()
-                                .productId(product.getProductId())
-                                .productName(product.getProductName())
-                                .description(product.getDescription())
-                                .usageInstruct(product.getUsageInstruct())
-                                .originCountry(product.getOriginCountry())
-                                .createAt(product.getCreateAt())
-                                .updateAt(product.getUpdateAt())
-                                .status(product.getStatus())
-                                .tag(product.getTag())
-                                .brand(product.getBrand())
-                                .skinType(product.getSkinType())
-                                .images(product.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()))
-                                .attribute(product.getAttribute())
-                                .build();
-                    }
-
-                    // Tạo OptionResponse có ProductResponse
-                    OptionResponse optionResponse = new OptionResponse(
-                            productOption.getOptionId(),
-                            productOption.getOptionValue(),
-                            productOption.getQuantity(),
-                            productOption.getOptionPrice(),
-                            productOption.getDiscPrice(),
-                            productOption.getCreateAt(),
-                            productOption.getUpdateAt(),
-                            productOption.getOptionImages()
-                    );
-                    optionResponse.setProduct(productResponse); // ✅ Gán product vào optionResponse
-
-                    return OrderDetailResponse.builder()
-                            .orderDetailId(orderDetail.getOrderDetailId())
-                            .quantity(orderDetail.getQuantity())
-                            .price(orderDetail.getPrice())
-                            .optionId(productOption.getOptionId())
-                            .optionResponse(List.of(optionResponse)) // ✅ Thêm OptionResponse vào danh sách
-                            .build();
-                }).collect(Collectors.toList());
-
-        return OrderResponse.builder()
-                .orderId(order.getOrderId())
-                .userId(order.getUser().getId()) // Đảm bảo lấy userId kiểu String
-                .totalPrices(order.getTotalPrices())
-                .address(order.getAddress())
-                .status(order.getStatus())
-                .paymentMethod(order.getPaymentMethod())
-                .createAt(order.getCreateAt())
-                .updateAt(order.getUpdateAt())
-                .orderDetails(orderDetailResponses) // ✅ Trả về danh sách OrderDetailResponse có OptionResponse
-                .build();
+        return convertToOrderResponse(order); // ✅ Gọi convertToOrderResponse để ánh xạ
     }
+
 
 
 
@@ -192,10 +136,25 @@ public class OrderService {
                 .map(orderDetail -> {
                     ProductOption productOption = orderDetail.getProductOption();
 
-                    // Ánh xạ ProductResponse từ ProductOption
+                    // ✅ Kiểm tra nếu productOption không null
                     ProductResponse productResponse = null;
-                    if (productOption.getProduct() != null) {
+                    if (productOption != null && productOption.getProduct() != null) {
                         Product product = productOption.getProduct();
+
+                        // ✅ Xử lý danh sách options, tránh bị null
+                        List<OptionResponse> optionResponses = product.getOptions() != null
+                                ? product.getOptions().stream().map(option -> new OptionResponse(
+                                option.getOptionId(),
+                                option.getOptionValue(),
+                                option.getQuantity(),
+                                option.getOptionPrice(),
+                                option.getDiscPrice(),
+                                option.getCreateAt(),
+                                option.getUpdateAt(),
+                                option.getOptionImages()
+                        )).collect(Collectors.toList())
+                                : Collections.emptyList(); // Trả về danh sách rỗng thay vì null
+
                         productResponse = ProductResponse.builder()
                                 .productId(product.getProductId())
                                 .productName(product.getProductName())
@@ -210,10 +169,11 @@ public class OrderService {
                                 .skinType(product.getSkinType())
                                 .images(product.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()))
                                 .attribute(product.getAttribute())
+                                .options(optionResponses) // ✅ Đảm bảo options không null
                                 .build();
                     }
 
-                    // ✅ Tạo OptionResponse và gán ProductResponse vào
+                    // ✅ Tạo OptionResponse có ProductResponse
                     OptionResponse optionResponse = new OptionResponse(
                             productOption.getOptionId(),
                             productOption.getOptionValue(),
@@ -224,29 +184,30 @@ public class OrderService {
                             productOption.getUpdateAt(),
                             productOption.getOptionImages()
                     );
-                    optionResponse.setProduct(productResponse); // ✅ Đảm bảo ProductResponse không bị null
+                    optionResponse.setProduct(productResponse);
 
                     return OrderDetailResponse.builder()
                             .orderDetailId(orderDetail.getOrderDetailId())
                             .quantity(orderDetail.getQuantity())
                             .price(orderDetail.getPrice())
                             .optionId(productOption.getOptionId())
-                            .optionResponse(List.of(optionResponse)) // ✅ Thêm OptionResponse vào danh sách
+                            .optionResponse(List.of(optionResponse))
                             .build();
                 }).collect(Collectors.toList());
 
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
-                .userId(order.getUser().getId()) // Đảm bảo lấy userId kiểu String
+                .userId(order.getUser().getId())
                 .totalPrices(order.getTotalPrices())
                 .address(order.getAddress())
                 .status(order.getStatus())
                 .paymentMethod(order.getPaymentMethod())
                 .createAt(order.getCreateAt())
                 .updateAt(order.getUpdateAt())
-                .orderDetails(orderDetailResponses) // ✅ Trả về danh sách OrderDetailResponse có OptionResponse
+                .orderDetails(orderDetailResponses)
                 .build();
     }
+
 
 
 
