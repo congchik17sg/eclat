@@ -49,21 +49,25 @@ public class OrderService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        // 2. Tạo đối tượng Order
+        // 2. Xác định status dựa vào paymentMethod
+        String paymentMethod = request.getPaymentMethod().trim().toLowerCase();
+        String status = paymentMethod.equals("cash") ? "success" : "pending";
+
+        // 3. Tạo đối tượng Order
         Order order = Order.builder()
                 .user(user)
                 .totalPrices(request.getTotalPrices())
                 .address(request.getAddress())
-                .status(request.getStatus())
-                .paymentMethod(request.getPaymentMethod()) // ✅ Thêm paymentMethod
+                .status(status) // ✅ Set status tự động
+                .paymentMethod(request.getPaymentMethod())
                 .createAt(LocalDateTime.now())
                 .updateAt(LocalDateTime.now())
                 .build();
 
-        // 💾 3. Lưu order vào database trước
+        // 💾 4. Lưu order vào database trước
         order = orderRepository.save(order);
 
-        // 4. Thêm danh sách OrderDetail vào đơn hàng
+        // 5. Thêm danh sách OrderDetail vào đơn hàng
         Order finalOrder = order;
         List<OrderDetail> orderDetails = request.getOrderDetails().stream()
                 .map(detailRequest -> {
@@ -79,21 +83,22 @@ public class OrderService {
                             .build();
                 }).collect(Collectors.toList());
 
-        // 💾 5. Lưu danh sách OrderDetail
+        // 💾 6. Lưu danh sách OrderDetail
         orderDetailRepository.saveAll(orderDetails);
 
-        // 6. Chuyển đổi sang Response và trả về
+        // 7. Chuyển đổi sang Response và trả về
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .totalPrices(order.getTotalPrices())
                 .address(order.getAddress())
-                .status(order.getStatus())
-                .paymentMethod(order.getPaymentMethod()) // ✅ Thêm paymentMethod vào response
+                .status(order.getStatus()) // ✅ Trả về status đã được cập nhật tự động
+                .paymentMethod(order.getPaymentMethod())
                 .createAt(order.getCreateAt())
                 .updateAt(order.getUpdateAt())
                 .orderDetails(orderDetails.stream().map(orderDetailMapper::toResponse).collect(Collectors.toList()))
                 .build();
     }
+
     // ham nay de xai trong vnpaycontroller
     public Optional<Order> getOrderByIdV2(Long orderId) {
         return orderRepository.findById(orderId);
