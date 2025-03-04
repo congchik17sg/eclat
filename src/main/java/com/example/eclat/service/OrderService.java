@@ -1,16 +1,14 @@
 package com.example.eclat.service;
 
 
-import com.example.eclat.entities.Order;
-import com.example.eclat.entities.OrderDetail;
-import com.example.eclat.entities.ProductOption;
-import com.example.eclat.entities.User;
+import com.example.eclat.entities.*;
 import com.example.eclat.mapper.OrderDetailMapper;
 import com.example.eclat.mapper.OrderMapper;
 import com.example.eclat.model.request.OrderRequest;
 import com.example.eclat.model.response.OptionResponse;
 import com.example.eclat.model.response.OrderDetailResponse;
 import com.example.eclat.model.response.OrderResponse;
+import com.example.eclat.model.response.ProductResponse;
 import com.example.eclat.repository.OptionRepository;
 import com.example.eclat.repository.OrderDetailRepository;
 import com.example.eclat.repository.OrderRepository;
@@ -123,7 +121,28 @@ public class OrderService {
                 .map(orderDetail -> {
                     ProductOption productOption = orderDetail.getProductOption();
 
-                    // Tạo OptionResponse trực tiếp
+                    // Ánh xạ ProductResponse
+                    ProductResponse productResponse = null;
+                    if (productOption.getProduct() != null) {
+                        Product product = productOption.getProduct();
+                        productResponse = ProductResponse.builder()
+                                .productId(product.getProductId())
+                                .productName(product.getProductName())
+                                .description(product.getDescription())
+                                .usageInstruct(product.getUsageInstruct())
+                                .originCountry(product.getOriginCountry())
+                                .createAt(product.getCreateAt())
+                                .updateAt(product.getUpdateAt())
+                                .status(product.getStatus())
+                                .tag(product.getTag())
+                                .brand(product.getBrand())
+                                .skinType(product.getSkinType())
+                                .images(product.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()))
+                                .attribute(product.getAttribute())
+                                .build();
+                    }
+
+                    // Tạo OptionResponse có ProductResponse
                     OptionResponse optionResponse = new OptionResponse(
                             productOption.getOptionId(),
                             productOption.getOptionValue(),
@@ -134,6 +153,7 @@ public class OrderService {
                             productOption.getUpdateAt(),
                             productOption.getOptionImages()
                     );
+                    optionResponse.setProduct(productResponse); // ✅ Gán product vào optionResponse
 
                     return OrderDetailResponse.builder()
                             .orderDetailId(orderDetail.getOrderDetailId())
@@ -156,6 +176,7 @@ public class OrderService {
                 .orderDetails(orderDetailResponses) // ✅ Trả về danh sách OrderDetailResponse có OptionResponse
                 .build();
     }
+
 
 
     // ✅ Lấy danh sách đơn hàng theo User ID
@@ -171,7 +192,28 @@ public class OrderService {
                 .map(orderDetail -> {
                     ProductOption productOption = orderDetail.getProductOption();
 
-                    // ✅ Tạo OptionResponse từ ProductOption
+                    // Ánh xạ ProductResponse từ ProductOption
+                    ProductResponse productResponse = null;
+                    if (productOption.getProduct() != null) {
+                        Product product = productOption.getProduct();
+                        productResponse = ProductResponse.builder()
+                                .productId(product.getProductId())
+                                .productName(product.getProductName())
+                                .description(product.getDescription())
+                                .usageInstruct(product.getUsageInstruct())
+                                .originCountry(product.getOriginCountry())
+                                .createAt(product.getCreateAt())
+                                .updateAt(product.getUpdateAt())
+                                .status(product.getStatus())
+                                .tag(product.getTag())
+                                .brand(product.getBrand())
+                                .skinType(product.getSkinType())
+                                .images(product.getImages().stream().map(Image::getImageUrl).collect(Collectors.toList()))
+                                .attribute(product.getAttribute())
+                                .build();
+                    }
+
+                    // ✅ Tạo OptionResponse và gán ProductResponse vào
                     OptionResponse optionResponse = new OptionResponse(
                             productOption.getOptionId(),
                             productOption.getOptionValue(),
@@ -182,6 +224,7 @@ public class OrderService {
                             productOption.getUpdateAt(),
                             productOption.getOptionImages()
                     );
+                    optionResponse.setProduct(productResponse); // ✅ Đảm bảo ProductResponse không bị null
 
                     return OrderDetailResponse.builder()
                             .orderDetailId(orderDetail.getOrderDetailId())
@@ -204,6 +247,7 @@ public class OrderService {
                 .orderDetails(orderDetailResponses) // ✅ Trả về danh sách OrderDetailResponse có OptionResponse
                 .build();
     }
+
 
 
 
