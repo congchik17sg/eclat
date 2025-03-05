@@ -2,6 +2,7 @@ package com.example.eclat.controller;
 
 import com.example.eclat.model.request.quiz.FeedbackRequest;
 import com.example.eclat.model.response.ApiResponse;
+import com.example.eclat.model.response.FeedbackResponseV3;
 import com.example.eclat.model.response.quiz.FeedbackResponse;
 import com.example.eclat.service.FeedbackService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -58,9 +59,9 @@ public class FeedbackController {
                 .build();
     }
     @GetMapping("/product/{productId}")
-    public ApiResponse<List<FeedbackResponse>> getFeedbackByProductId(@PathVariable Long productId) {
-        return ApiResponse.<List<FeedbackResponse>>builder()
-                .result(feedbackService.getFeedbackByProductId(productId))
+    public ApiResponse<List<FeedbackResponseV3>> getFeedbackByProductId(@PathVariable Long productId) {
+        return ApiResponse.<List<FeedbackResponseV3>>builder()
+                .result(feedbackService.getFeedbackByProductIdV3(productId))
                 .build();
     }
 

@@ -85,7 +85,20 @@ public class OrderService {
         // 💾 6. Lưu danh sách OrderDetail
         orderDetailRepository.saveAll(orderDetails);
 
-        // 7. Chuyển đổi sang Response và trả về
+        // 7. Nếu paymentMethod là "cash", cập nhật quantity của ProductOption
+        if ("cash".equalsIgnoreCase(request.getPaymentMethod())) {
+            for (OrderDetail detail : orderDetails) {
+                ProductOption option = detail.getProductOption();
+                int newQuantity = option.getQuantity() - detail.getQuantity();
+                if (newQuantity < 0) {
+                    throw new RuntimeException("Not enough stock for product option: " + option.getOptionId());
+                }
+                option.setQuantity(newQuantity);
+                productOptionRepository.save(option);
+            }
+        }
+
+        // 8. Chuyển đổi sang Response và trả về
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .totalPrices(order.getTotalPrices())
@@ -97,6 +110,7 @@ public class OrderService {
                 .orderDetails(orderDetails.stream().map(orderDetailMapper::toResponse).collect(Collectors.toList()))
                 .build();
     }
+
 
     // ham nay de xai trong vnpaycontroller
     public Optional<Order> getOrderByIdV2(Long orderId) {
