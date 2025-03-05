@@ -4,10 +4,7 @@ import com.example.eclat.entities.*;
 import com.example.eclat.exception.AppException;
 import com.example.eclat.exception.ErrorCode;
 import com.example.eclat.model.request.quiz.FeedbackRequest;
-import com.example.eclat.model.response.OptionResponse;
-import com.example.eclat.model.response.OptionResponseV2;
-import com.example.eclat.model.response.ProductResponse;
-import com.example.eclat.model.response.ProductResponseV2;
+import com.example.eclat.model.response.*;
 import com.example.eclat.model.response.quiz.FeedbackResponse;
 import com.example.eclat.repository.FeedbackRepository;
 import com.example.eclat.repository.OrderDetailRepository;
@@ -115,14 +112,53 @@ public class FeedbackService {
         feedbackRepository.deleteById(feedbackId);
     }
 
-    public List<FeedbackResponse> getFeedbackByProductId(Long productId) {
+//    public List<FeedbackResponse> getFeedbackByProductId(Long productId) {
+//        List<FeedBack> feedbacks = feedbackRepository.findByOrderDetail_ProductOption_Product_ProductId(productId);
+//
+//        return feedbacks.stream().map(feedback -> {
+//            Product product = feedback.getOrderDetail().getProductOption().getProduct();
+//            ProductResponseV2 productResponseV2 = mapToProductResponseV2(product);
+//
+//            return FeedbackResponse.builder()
+//                    .feedbackId(feedback.getFeedback_id()) // Sửa lỗi đặt tên
+//                    .text(feedback.getText())
+//                    .userId(feedback.getUser() != null ? feedback.getUser().getId().toString() : null) // Kiểm tra null tránh lỗi
+//                    .username(feedback.getUser().getUsername())
+//                    .rating(feedback.getRating())
+//                    .createAt(feedback.getCreate_at())
+//                    .update_at(feedback.getUpdate_at())
+//                    .orderDetailId(feedback.getOrderDetail().getOrderDetailId())
+//                    .product(productResponseV2) // Gán product vào response
+//                    .build();
+//        }).toList();
+//    }
+
+
+    public List<FeedbackResponseV3> getFeedbackByProductIdV3(Long productId) {
         List<FeedBack> feedbacks = feedbackRepository.findByOrderDetail_ProductOption_Product_ProductId(productId);
 
         return feedbacks.stream().map(feedback -> {
+            // Lấy thông tin sản phẩm
             Product product = feedback.getOrderDetail().getProductOption().getProduct();
-            ProductResponseV2 productResponseV2 = mapToProductResponseV2(product);
 
-            return FeedbackResponse.builder()
+            // Tạo đối tượng ProductResponseV3 (chỉ chứa productId và productName)
+            ProductResponseV3 productResponse = ProductResponseV3.builder()
+                    .productId(product.getProductId())
+                    .productName(product.getProductName())
+                    .build();
+
+            // Lấy thông tin OrderDetail
+            OrderDetail orderDetail = feedback.getOrderDetail();
+            OrderDetailResponse orderDetailResponse = OrderDetailResponse.builder()
+                    .orderDetailId(orderDetail.getOrderDetailId())
+                    .orderDetailId(orderDetail.getOrder().getOrderId())
+                    .quantity(orderDetail.getQuantity())
+                    .price(orderDetail.getPrice())
+//                    .(orderDetail.getOrderDate())
+                    .optionId(orderDetail.getProductOption().getOptionId())
+                    .build();
+
+            return FeedbackResponseV3.builder()
                     .feedbackId(feedback.getFeedback_id()) // Sửa lỗi đặt tên
                     .text(feedback.getText())
                     .userId(feedback.getUser() != null ? feedback.getUser().getId().toString() : null) // Kiểm tra null tránh lỗi
@@ -130,11 +166,12 @@ public class FeedbackService {
                     .rating(feedback.getRating())
                     .createAt(feedback.getCreate_at())
                     .update_at(feedback.getUpdate_at())
-                    .orderDetailId(feedback.getOrderDetail().getOrderDetailId())
-                    .product(productResponseV2) // Gán product vào response
+                    .orderDetail(orderDetailResponse) // Gán orderDetail đầy đủ vào response
+                    .product(productResponse) // Gán product chỉ có productId và productName
                     .build();
         }).toList();
     }
+
 
     private ProductResponseV2 mapToProductResponseV2(Product product) {
         ProductResponseV2 productResponse = ProductResponseV2.builder()
