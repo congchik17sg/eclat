@@ -49,7 +49,7 @@ public class OrderService {
 
         // 2. Xác định status dựa vào paymentMethod
         String paymentMethod = request.getPaymentMethod().trim().toLowerCase();
-        String status = paymentMethod.equals("cash") ? "success" : "pending";
+        String status = paymentMethod.equals("cash") ? "SUCCESS" : "PENDING";
 
         // 3. Tạo đối tượng Order
         Order order = Order.builder()
