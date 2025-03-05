@@ -20,6 +20,7 @@ public class OrderDetailResponse {
 
 
     Long orderDetailId;
+    String optionValue;
     Integer quantity;
     BigDecimal price;
     Long optionId;

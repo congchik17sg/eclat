@@ -154,6 +154,7 @@ public class FeedbackService {
                     .orderDetailId(orderDetail.getOrder().getOrderId())
                     .quantity(orderDetail.getQuantity())
                     .price(orderDetail.getPrice())
+                    .optionValue(orderDetail.getProductOption().getOptionValue())
 //                    .(orderDetail.getOrderDate())
                     .optionId(orderDetail.getProductOption().getOptionId())
                     .build();
