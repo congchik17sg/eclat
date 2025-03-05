@@ -2,12 +2,13 @@ package com.example.eclat.model.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
 import java.time.LocalDate;
+
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FeedbackResponse {
     Long feedbackId;
@@ -15,14 +16,8 @@ public class FeedbackResponse {
     String userId;
     String username;
     int rating;
-
-    public FeedbackResponse(Long feedbackId, String text, String userId, String username, int rating) {
-        this.feedbackId = feedbackId;
-        this.text = text;
-        this.userId = userId;
-        this.username = username;
-        this.rating = rating;
-    }
-
-    // Getter và Setter
+    LocalDate create_at;
+    LocalDate update_at;
+    Long orderDetailId;
+    ProductResponse product; // Thêm thông tin sản phẩm vào phản hồi
 }
