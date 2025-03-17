@@ -124,14 +124,14 @@ public class VnPayController {
             // 🔹 Xác thực chữ ký VNPAY
             boolean isValid = vnPayService.validateSignature(params);
             if (!isValid) {
-                response.sendRedirect("http://localhost:5173/payment-failed");
+                response.sendRedirect("https://eclatshop.vercel.app/payment-failed");
                 return ResponseEntity.badRequest().body("Invalid signature");
             }
 
             // 🔹 Lấy giao dịch từ DB
             Optional<Transaction> transactionOpt = transactionRepository.findByVnpTxnRef(vnpTxnRef);
             if (transactionOpt.isEmpty()) {
-                response.sendRedirect("http://localhost:5173/payment-not-found");
+                response.sendRedirect("https://eclatshop.vercel.app/payment-not-found");
                 return ResponseEntity.badRequest().body("Transaction not found");
             }
 
@@ -153,7 +153,7 @@ public class VnPayController {
                     int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
 
                     if (newQuantity < 0) {
-                    response.sendRedirect("http://localhost:5173/payment-failed");
+                    response.sendRedirect("https://eclatshop.vercel.app/payment-failed");
                     return null;
                 }
                     productOption.setQuantity(newQuantity);
@@ -166,12 +166,12 @@ public class VnPayController {
             // 🔹 Lưu transaction vào DB
             transactionRepository.save(transaction);
 
-            response.sendRedirect("http://localhost:5173/payment-success?orderId=" + order.getOrderId());
+            response.sendRedirect("https://eclatshop.vercel.app/payment-success?orderId=" + order.getOrderId());
             return null;
         } catch (Exception e) {
           e.printStackTrace();
           try {
-            response.sendRedirect("http://localhost:5173/payment-error");
+            response.sendRedirect("https://eclatshop.vercel.app/payment-error");
           } catch (Exception ignored) {}
           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
         }
