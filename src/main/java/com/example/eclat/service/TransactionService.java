@@ -42,17 +42,30 @@ public class TransactionService {
         this.orderRepository = orderRepository;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000) // Chạy mỗi 60s
     public void cancelExpiredTransactions() {
         LocalDateTime now = LocalDateTime.now();
-        List<Transaction> expiredTransactions = transactionRepository.findByTransactionStatusAndExpireAtBefore("PENDING", now);
+        List<Transaction> expiredTransactions = transactionRepository.findByTransactionStatusAndExpireAtBefore("PENDING", now.minusMinutes(15));
 
         for (Transaction transaction : expiredTransactions) {
             transaction.setTransactionStatus("CANCELED");
             transactionRepository.save(transaction);
+
+            Order order = transaction.getOrder();
+            order.setStatus("CANCELED");
+            orderRepository.save(order);
+
+            // 🔹 Hoàn lại số lượng sản phẩm
+            for (OrderDetail orderDetail : order.getOrderDetails()) {
+                ProductOption productOption = orderDetail.getProductOption();
+                productOption.setQuantity(productOption.getQuantity() + orderDetail.getQuantity());
+                productOptionRepository.save(productOption);
+            }
+
             System.out.println("⚠️ Giao dịch " + transaction.getVnpTxnRef() + " đã bị hủy do quá thời gian!");
         }
     }
+
 
     public List<TransactionResponse> getAllTransactions() {
         return transactionRepository.findAll().stream()

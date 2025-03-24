@@ -7,6 +7,7 @@ import com.example.eclat.entities.Transaction;
 import com.example.eclat.model.response.OrderResponse;
 import com.example.eclat.model.response.TransactionResponse;
 import com.example.eclat.repository.OptionRepository;
+import com.example.eclat.repository.OrderRepository;
 import com.example.eclat.repository.TransactionRepository;
 import com.example.eclat.service.OrderService;
 import com.example.eclat.service.TransactionService;
@@ -47,6 +48,8 @@ public class VnPayController {
     private TransactionRepository transactionRepository;
     @Autowired
     private OptionRepository productOptionRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     private OrderService orderService;
@@ -112,12 +115,82 @@ public class VnPayController {
     }
 
 
+//    @GetMapping("/vnpay-return")
+//    public ResponseEntity<?> handleReturnUrl(HttpServletRequest request, HttpServletResponse response) {
+//        try {
+//            // 🔹 Tạo bản sao Mutable của request.getParameterMap()
+//            Map<String, String[]> params = new HashMap<>(request.getParameterMap());
+//
+//            String vnpTxnRef = request.getParameter("vnp_TxnRef");
+//            String vnpResponseCode = request.getParameter("vnp_ResponseCode");
+//
+//            // 🔹 Xác thực chữ ký VNPAY
+//            boolean isValid = vnPayService.validateSignature(params);
+//            if (!isValid) {
+//                response.sendRedirect("https://eclatshop.vercel.app/payment-failed");
+//                return ResponseEntity.badRequest().body("Invalid signature");
+//            }
+//
+//            // 🔹 Lấy giao dịch từ DB
+//            Optional<Transaction> transactionOpt = transactionRepository.findByVnpTxnRef(vnpTxnRef);
+//            if (transactionOpt.isEmpty()) {
+//                response.sendRedirect("https://eclatshop.vercel.app/payment-not-found");
+//                return ResponseEntity.badRequest().body("Transaction not found");
+//            }
+//
+//            Transaction transaction = transactionOpt.get();
+//            Order order = transaction.getOrder();
+//
+//            // 🔹 Xác định trạng thái giao dịch
+//            String status = "00".equals(vnpResponseCode) ? "SUCCESS" : "FAILED";
+//            transaction.setTransactionStatus(status);
+//            transaction.setVnpResponseCode(vnpResponseCode);
+//
+//            if (status == "FAILED") {
+//                    transactionRepository.save(transaction);
+//                    response.sendRedirect("https://eclatshop.vercel.app/payment-failed");
+//                    return null;
+//                }
+//
+//            // 🔹 Cập nhật trạng thái đơn hàng nếu thanh toán thành công
+//            if ("SUCCESS".equals(status)) {
+//                order.setStatus("PAID");
+//
+//                // 🔹 Giảm số lượng sản phẩm trong ProductOption
+//                for (OrderDetail orderDetail : order.getOrderDetails()) {
+//                    ProductOption productOption = orderDetail.getProductOption();
+//                    int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
+//
+//                    if (newQuantity < 0) {
+//                    response.sendRedirect("https://eclatshop.vercel.app/payment-failed");
+//                    return null;
+//                }
+//
+//                    productOption.setQuantity(newQuantity);
+//                    productOptionRepository.save(productOption);
+//                }
+//
+//                orderService.save(order);
+//            }
+//
+//            // 🔹 Lưu transaction vào DB
+//            transactionRepository.save(transaction);
+//
+//            response.sendRedirect("https://eclatshop.vercel.app/payment-success?orderId=" + order.getOrderId());
+//            return null;
+//        } catch (Exception e) {
+//          e.printStackTrace();
+//          try {
+//            response.sendRedirect("https://eclatshop.vercel.app/payment-error");
+//          } catch (Exception ignored) {}
+//          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
+//        }
+//    }
+
     @GetMapping("/vnpay-return")
     public ResponseEntity<?> handleReturnUrl(HttpServletRequest request, HttpServletResponse response) {
         try {
-            // 🔹 Tạo bản sao Mutable của request.getParameterMap()
             Map<String, String[]> params = new HashMap<>(request.getParameterMap());
-
             String vnpTxnRef = request.getParameter("vnp_TxnRef");
             String vnpResponseCode = request.getParameter("vnp_ResponseCode");
 
@@ -128,7 +201,7 @@ public class VnPayController {
                 return ResponseEntity.badRequest().body("Invalid signature");
             }
 
-            // 🔹 Lấy giao dịch từ DB
+            // 🔹 Tìm transaction theo TxnRef
             Optional<Transaction> transactionOpt = transactionRepository.findByVnpTxnRef(vnpTxnRef);
             if (transactionOpt.isEmpty()) {
                 response.sendRedirect("https://eclatshop.vercel.app/payment-not-found");
@@ -138,51 +211,37 @@ public class VnPayController {
             Transaction transaction = transactionOpt.get();
             Order order = transaction.getOrder();
 
-            // 🔹 Xác định trạng thái giao dịch
+            // 🔹 Cập nhật trạng thái
             String status = "00".equals(vnpResponseCode) ? "SUCCESS" : "FAILED";
             transaction.setTransactionStatus(status);
-            transaction.setVnpResponseCode(vnpResponseCode);
-
-            if (status == "FAILED") {
-                    transactionRepository.save(transaction);
-                    response.sendRedirect("https://eclatshop.vercel.app/payment-failed");
-                    return null;
-                }
-
-            // 🔹 Cập nhật trạng thái đơn hàng nếu thanh toán thành công
-            if ("SUCCESS".equals(status)) {
-                order.setStatus("PAID");
-
-                // 🔹 Giảm số lượng sản phẩm trong ProductOption
-                for (OrderDetail orderDetail : order.getOrderDetails()) {
-                    ProductOption productOption = orderDetail.getProductOption();
-                    int newQuantity = productOption.getQuantity() - orderDetail.getQuantity();
-
-                    if (newQuantity < 0) {
-                    response.sendRedirect("https://eclatshop.vercel.app/payment-failed");
-                    return null;
-                }
-                
-                    productOption.setQuantity(newQuantity);
-                    productOptionRepository.save(productOption);
-                }
-
-                orderService.save(order);
-            }
-
-            // 🔹 Lưu transaction vào DB
             transactionRepository.save(transaction);
 
-            response.sendRedirect("https://eclatshop.vercel.app/payment-success?orderId=" + order.getOrderId());
+            if ("SUCCESS".equals(status)) {
+                order.setStatus("SUCCESS"); // ✅ Cập nhật order nếu thanh toán thành công
+                orderRepository.save(order);
+
+                // 🔹 Trừ sản phẩm trong kho
+                for (OrderDetail orderDetail : order.getOrderDetails()) {
+                    ProductOption productOption = orderDetail.getProductOption();
+                    productOption.setQuantity(productOption.getQuantity() - orderDetail.getQuantity());
+                    productOptionRepository.save(productOption);
+                }
+            } else {
+                order.setStatus("FAILED"); // ✅ Cập nhật order nếu thanh toán thất bại
+                orderRepository.save(order);
+            }
+
+            response.sendRedirect("https://eclatshop.vercel.app/payment-" + (status.equals("SUCCESS") ? "success" : "failed"));
             return null;
         } catch (Exception e) {
-          e.printStackTrace();
-          try {
-            response.sendRedirect("https://eclatshop.vercel.app/payment-error");
-          } catch (Exception ignored) {}
-          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
+            e.printStackTrace();
+            try {
+                response.sendRedirect("https://eclatshop.vercel.app/payment-error");
+            } catch (Exception ignored) {}
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error");
         }
     }
+
 
     @GetMapping
     public ResponseEntity<List<TransactionResponse>> getAllTransactions() {

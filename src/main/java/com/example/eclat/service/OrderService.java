@@ -9,10 +9,7 @@ import com.example.eclat.model.response.OptionResponse;
 import com.example.eclat.model.response.OrderDetailResponse;
 import com.example.eclat.model.response.OrderResponse;
 import com.example.eclat.model.response.ProductResponse;
-import com.example.eclat.repository.OptionRepository;
-import com.example.eclat.repository.OrderDetailRepository;
-import com.example.eclat.repository.OrderRepository;
-import com.example.eclat.repository.UserRepository;
+import com.example.eclat.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +38,76 @@ public class OrderService {
     OptionRepository productOptionRepository;
     OrderMapper orderMapper;
     OrderDetailMapper orderDetailMapper;
+    TransactionRepository transactionRepository;
+
+//    @Transactional
+//    public OrderResponse createOrder(OrderRequest request) {
+//        // 1. Tìm user theo ID
+//        User user = userRepository.findById(request.getUserId())
+//                .orElseThrow(() -> new RuntimeException("User not found!"));
+//
+//        // 2. Xác định status dựa vào paymentMethod
+//        String paymentMethod = request.getPaymentMethod().trim().toLowerCase();
+//        String status = paymentMethod.equals("cash") ? "SUCCESS" : "PENDING";
+//
+//        // 3. Tạo đối tượng Order
+//        Order order = Order.builder()
+//                .user(user)
+//                .totalPrices(request.getTotalPrices())
+//                .address(request.getAddress())
+//                .status(status) // ✅ Set status tự động
+//                .paymentMethod(request.getPaymentMethod())
+//                .createAt(LocalDateTime.now())
+//                .updateAt(LocalDateTime.now())
+//                .build();
+//
+//        // 💾 4. Lưu order vào database trước
+//        order = orderRepository.save(order);
+//
+//        // 5. Thêm danh sách OrderDetail vào đơn hàng
+//        Order finalOrder = order;
+//        List<OrderDetail> orderDetails = request.getOrderDetails().stream()
+//                .map(detailRequest -> {
+//                    ProductOption option = productOptionRepository.findById(detailRequest.getOptionId())
+//                            .orElseThrow(() -> new RuntimeException("Option not found!"));
+//
+//                    return OrderDetail.builder()
+//                            .order(finalOrder)
+//                            .productOption(option)
+//                            .quantity(detailRequest.getQuantity())
+//                            .price(detailRequest.getPrice())
+//                            .orderDate(LocalDateTime.now())
+//                            .build();
+//                }).collect(Collectors.toList());
+//
+//        // 💾 6. Lưu danh sách OrderDetail
+//        orderDetailRepository.saveAll(orderDetails);
+//
+//        // 7. Nếu paymentMethod là "cash", cập nhật quantity của ProductOption
+//        if ("cash".equalsIgnoreCase(request.getPaymentMethod())) {
+//            for (OrderDetail detail : orderDetails) {
+//                ProductOption option = detail.getProductOption();
+//                int newQuantity = option.getQuantity() - detail.getQuantity();
+//                if (newQuantity < 0) {
+//                    throw new RuntimeException("Not enough stock for product option: " + option.getOptionId());
+//                }
+//                option.setQuantity(newQuantity);
+//                productOptionRepository.save(option);
+//            }
+//        }
+//
+//        // 8. Chuyển đổi sang Response và trả về
+//        return OrderResponse.builder()
+//                .orderId(order.getOrderId())
+//                .totalPrices(order.getTotalPrices())
+//                .address(order.getAddress())
+//                .status(order.getStatus()) // ✅ Trả về status đã được cập nhật tự động
+//                .paymentMethod(order.getPaymentMethod())
+//                .createAt(order.getCreateAt())
+//                .updateAt(order.getUpdateAt())
+//                .orderDetails(orderDetails.stream().map(orderDetailMapper::toResponse).collect(Collectors.toList()))
+//                .build();
+//    }
 
     @Transactional
     public OrderResponse createOrder(OrderRequest request) {
@@ -50,31 +117,30 @@ public class OrderService {
 
         // 2. Xác định status dựa vào paymentMethod
         String paymentMethod = request.getPaymentMethod().trim().toLowerCase();
-        String status = paymentMethod.equals("cash") ? "SUCCESS" : "PENDING";
+        String orderStatus = paymentMethod.equals("cash") ? "SUCCESS" : "PENDING";
 
-        // 3. Tạo đối tượng Order
+        // 3. Tạo Order
         Order order = Order.builder()
                 .user(user)
                 .totalPrices(request.getTotalPrices())
                 .address(request.getAddress())
-                .status(status) // ✅ Set status tự động
+                .status(orderStatus) // ✅ Set trạng thái tự động
                 .paymentMethod(request.getPaymentMethod())
                 .createAt(LocalDateTime.now())
                 .updateAt(LocalDateTime.now())
                 .build();
 
-        // 💾 4. Lưu order vào database trước
-        order = orderRepository.save(order);
+        // 4. Lưu order vào database trước
+        Order savedOrder = orderRepository.save(order); // Đặt tên khác để tránh vấn đề scope
 
-        // 5. Thêm danh sách OrderDetail vào đơn hàng
-        Order finalOrder = order;
+// 5. Tạo danh sách OrderDetail
         List<OrderDetail> orderDetails = request.getOrderDetails().stream()
                 .map(detailRequest -> {
                     ProductOption option = productOptionRepository.findById(detailRequest.getOptionId())
                             .orElseThrow(() -> new RuntimeException("Option not found!"));
 
                     return OrderDetail.builder()
-                            .order(finalOrder)
+                            .order(savedOrder) // Sử dụng biến mới
                             .productOption(option)
                             .quantity(detailRequest.getQuantity())
                             .price(detailRequest.getPrice())
@@ -82,11 +148,12 @@ public class OrderService {
                             .build();
                 }).collect(Collectors.toList());
 
+
         // 💾 6. Lưu danh sách OrderDetail
         orderDetailRepository.saveAll(orderDetails);
 
-        // 7. Nếu paymentMethod là "cash", cập nhật quantity của ProductOption
-        if ("cash".equalsIgnoreCase(request.getPaymentMethod())) {
+        // 7. Nếu paymentMethod là "cash", trừ sản phẩm trong kho ngay
+        if ("cash".equalsIgnoreCase(paymentMethod)) {
             for (OrderDetail detail : orderDetails) {
                 ProductOption option = detail.getProductOption();
                 int newQuantity = option.getQuantity() - detail.getQuantity();
@@ -97,8 +164,20 @@ public class OrderService {
                 productOptionRepository.save(option);
             }
         }
+        // 8. Nếu thanh toán bằng VNPAY, tạo Transaction với trạng thái PENDING
+        else if ("vnpay".equalsIgnoreCase(paymentMethod)) {
+            Transaction transaction = Transaction.builder()
+                    .order(order)
+                    .amount(order.getTotalPrices())
+                    .transactionStatus("PENDING") // ✅ Trạng thái ban đầu là PENDING
+                    .createAt(LocalDateTime.now())
+                    .expireAt(LocalDateTime.now().plusMinutes(15)) // ✅ Hết hạn sau 15 phút
+                    .build();
 
-        // 8. Chuyển đổi sang Response và trả về
+            transactionRepository.save(transaction);
+        }
+
+        // 9. Chuyển đổi sang Response và trả về
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .totalPrices(order.getTotalPrices())
@@ -110,6 +189,7 @@ public class OrderService {
                 .orderDetails(orderDetails.stream().map(orderDetailMapper::toResponse).collect(Collectors.toList()))
                 .build();
     }
+
 
 
     // ham nay de xai trong vnpaycontroller
